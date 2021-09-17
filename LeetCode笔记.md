@@ -30,6 +30,8 @@
 
 [162. 寻找峰值 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/find-peak-element/)
 
+找到左边和右边相邻元素都小于自身的元素
+
 ### 287.寻找重复数
 
 [287. 寻找重复数 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/find-the-duplicate-number/)
@@ -76,7 +78,7 @@
 
 定义两个指针，一快一慢。慢指针每次只移动一步，而快指针每次移动两步。初始时，慢指针在位置 head，而快指针在位置 head.next。这样一来，如果在移动的过程中，快指针反过来追上慢指针，就说明该链表为环形链表。否则快指针将到达链表尾部，该链表不为环形链表。
 
-注意本题中不能把slow.val==fast.val作为判断有环的条件，而是slow==fast，因为链表中节点的值可能相同
+注意本题中不能把slow.val==fast.val作为判断有环的条件，而是判断slow==fast，因为链表中节点的值可能相同
 
 ### 142.环形链表II
 
@@ -539,6 +541,67 @@ public int rand10() {
 哈希表还需put(0,-1)，考虑前缀和直接就是0的情况
 
 遍历nums是否存在前缀和相等，两个前缀和之差就是连续子数组的长度
+
+### 560.和为K的子数组
+
+[560. 和为 K 的子数组 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/subarray-sum-equals-k/)
+
+暴力法
+
+三重for循环，逐个遍历找到和为k的子数组数量
+
+前缀和
+
+使用数组sums存储数组的前缀和，sums长度为n+1，sums[0]=0
+
+```java
+		int n=nums.length;
+        int[] sums=new int[n+1];
+        for(int i=0;i<n;i++)
+        {
+            sums[i+1]=sums[i]+nums[i];
+        }
+```
+
+然后对sums数组进行双重遍历，利用前缀和之差表示子数组的和，如sums[j]-sums[i]（j>i），表示从nums[i]到nums[j-1]的元素之和
+
+```java
+		int re=0;		
+		for(int i=0;i<=n;i++)
+        {
+            for(int j=i+1;j<=n;j++)
+            {
+                if(sums[j]-sums[i]==k)
+                {
+                    re++;
+                }
+            }
+        }
+```
+
+前缀和+哈希
+
+使用哈希表map记录前缀和的值和对应的数量，避免了遍历寻找合适的前缀和的过程
+
+并且在计算前缀和的过程中，从map中获取前缀和为sums[i+1]-k的个数，表明这两个前缀和之差为k，而且也确保了i+1大于map中前缀和的下标，因为只有在计算出前缀和之后才将其加入map。
+
+map最开始要加入（0，1），表示sums[0]
+
+```java
+		map.put(0,1);
+        int re=0;
+        for(int i=0;i<n;i++)
+        {
+            sums[i+1]=sums[i]+nums[i];
+            if(map.containsKey(sums[i+1]-k))
+            {
+                re+=map.get(sums[i+1]-k);
+            }
+            		map.put(sums[i+1],map.getOrDefault(sums[i+1],0)+1);
+        }
+```
+
+
 
 ### 1744.你能在你最喜欢的那天吃到你最喜欢的糖果吗
 
