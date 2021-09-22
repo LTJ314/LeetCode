@@ -272,6 +272,106 @@ a+(n+1)b+nc=2(a+b)⟹a=c+(n−1)(b+c)
 
 因此采用排序+双指针的方式，首先对体重数组people[n]排序，left最轻，right最重，如果两者之和不超过限制limit，则可同坐一艘船，两个指针同时向中间移动，否则较重的right坐一艘船，right左移，left不移动进入与right-1求和的下一次判断
 
+## 单调栈
+
+### 316.去除重复字母
+
+[316. 去除重复字母 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/remove-duplicate-letters/)
+
+本题和1081题相同
+
+要求每个字母只出现一次，且返回结果的字典序最小
+
+难点在于使得字典序最小
+
+
+
+维护一个单调栈（不严格单调）存储字符，更新栈顶元素使得字典序最小，尽量满足从栈底到栈顶的字符递增，如果栈顶字符大于当前字符，而且字符串在当前字符之后还有与栈顶字符相同的字符，则将栈顶字符出栈，出栈后，新的栈顶字符还是需要与当前字符相比较，直到栈顶字符小于当前字符或者字符串中当前字符之后没有与栈顶字符相同的字符为止（栈空也需要考虑），这时候再将当前字符入栈
+
+采用visited[]数组记录该字符是否加入单调栈，只有标记为false的字符才需要加入单调栈，加入之后将其标记为true
+
+在弹出栈顶字符时，如果字符串在后面的位置上再也没有这一字符，则不能弹出栈顶字符。为此，需要记录每个字符的剩余数量，当这个值为 0 时，就不能弹出栈顶字符了，在弹出栈顶字符后，栈顶字符应该被标记为true。
+
+字符的数量使用数组count记录，首先对字符串做预处理，遍历一遍之后获取对应字符的数量
+
+```java
+		int[] count=new int[26];
+        for(int i=0;i<n;i++)
+        {
+            count[s.charAt(i)-'a']++;
+        }
+```
+
+遍历完当前字符，不管它是否被标记为false，都应将其对应的数量减一
+
+顺序遍历字符串，进而维护单调栈
+
+```java
+		for(int i=0;i<n;i++)
+        {
+            char cur=s.charAt(i);
+            if(!visited[cur-'a'])
+            {
+                while(!stack.isEmpty()&&stack.peek()>cur&&count[stack.peek()-'a']>0)
+                {
+                    visited[stack.peek()-'a']=false;
+                    stack.pop();
+                }
+                stack.push(cur);
+                visited[cur-'a']=true;
+            }
+            count[cur-'a']--;
+        }
+```
+
+遍历完字符串之后，单调栈stack中就是结果
+
+```java
+		while(!stack.isEmpty())
+        {
+            re.append(stack.pop());
+        }
+        return re.reverse().toString();
+```
+
+
+
+### 739.每日温度
+
+[739. 每日温度 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/daily-temperatures/)
+
+暴力法
+
+双重遍历，对每天的气温，向后遍历数组，找到第一个比当前气温高的下标，两个下标之差就是结果
+
+单调栈
+
+维护一个单调栈，存储数组的下标，确保栈中的下标对应的气温是从栈底到栈顶递减的
+
+遍历气温数组，将下标按照如下规则入栈和出栈：
+
+当前下标为i，如果栈不为空且当前气温大于栈顶下标对应的气温，则将栈顶下标出栈为cur，且re[cur]=i-cur表示cur天需要等i-cur天之后就有更高的温度。直到栈顶的下标对应的气温大于当前气温或者栈空，将当前的气温对应的下标i入栈，否则一直进行之前的出栈操作
+
+对于气温在这之后都不会升高的下标，它们一直在栈中，由于re[i]初始值就是0，所以不需要对其进行额外操作
+
+```java
+		int n=temperatures.length;
+        int[] re=new int[n];
+        Stack<Integer> stack=new Stack<Integer>();
+        for(int i=0;i<n;i++)
+        {
+            while(!stack.isEmpty()&&temperatures[stack.peek()]<temperatures[i])
+            {
+                int cur=stack.pop();
+                re[cur]=i-cur;
+            }
+            stack.push(i);
+        }
+        return re;
+```
+
+
+
 ## 排序
 
 ### 归并排序
@@ -1221,6 +1321,66 @@ $$
 [647. 回文子串 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/palindromic-substrings/)
 
 与5题相同的解法，本题求的是回文子串的数量，所以在`dp[i][j]=true`时，计数器加一即可
+
+### 673.最长递增子序列的个数
+
+[673. 最长递增子序列的个数 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/number-of-longest-increasing-subsequence/)
+
+本题可以直接使用300题的方法，在状态转移的过程中得到最长递增子序列的长度和对应的个数
+
+在300题的基础上进行改造
+
+dp[i]仍然是以nums[i]结尾的递增子序列的最大长度，定义count[i]表示以nums[i]为结尾的最长递增子序列的个数
+
+dp[i]和count[i]的初始值都为1
+
+状态转移是顺序遍历，先计算dp[0...i-1]的值，count[i]也类似
+
+只有当	nums[i]>nums[j]时才需要进行更新操作
+
+如果dp[i]<dp[j]+1；说明以 nums[i]为结尾的最长递增子序列是以nums[j]为结尾的最长递增子序列的尾部加上nums[i]组成的，因此count[i]更新为count[j]
+
+如果dp[i]=dp[j]+1，说明以nums[i]为结尾的最长递增子序列的倒数第二个数有多个取值，因此将count[i]加上count[j]
+
+遍历过程中也需要更新最长递增子序列的长度max和对应的数量re
+
+如果max<dp[i]，则将max更新为dp[i]，将re更新count[i]，这种情况就是找到了更长的递增子序列
+
+如果max=dp[i]，则max不需要变动，将re加上count[i]，这种情况对应的是最长递增子序列可以通过不同的nums[i]作为结尾得到
+
+```java
+		for(int i=0;i<n;i++)
+        {
+            dp[i]=1;
+            count[i]=1;
+            for(int j=0;j<i;j++)
+            {
+                if(nums[i]>nums[j])
+                {
+                    if(dp[i]<dp[j]+1)
+                    {
+                        dp[i]=dp[j]+1;
+                        count[i]=count[j];
+                    }
+                    else if(dp[i]==dp[j]+1)
+                    {
+                        count[i]+=count[j];
+                    }
+                }
+            }
+            if(max<dp[i])
+            {
+                max=dp[i];
+                re=count[i];
+            }
+            else if(max==dp[i])
+            {
+                re+=count[i];
+            }
+        }
+```
+
+
 
 ### 787.K站中转内最便宜的航班
 
