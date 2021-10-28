@@ -374,6 +374,53 @@ a+(n+1)b+nc=2(a+b)⟹a=c+(n−1)(b+c)
 
 ## 排序
 
+### [剑指 Offer 45. 把数组排成最小的数](https://leetcode-cn.com/problems/ba-shu-zu-pai-cheng-zui-xiao-de-shu-lcof/)
+
+把数组中的非负整数拼接成最小的数
+
+首先把数组中的数转化为字符串，存储在list中
+
+```java
+		int n=nums.length;
+        List<String> list=new ArrayList<String>();
+        for(int i=0;i<n;i++)
+        {
+            list.add(String.valueOf(nums[i]));
+        }
+```
+
+然后对list中的字符串排序，如果简单按照字符串大小排序，会出现[3,30]变成330而不是最小的303，因此需要重写字符串排序的规则
+
+两个字符串的先后顺序如何考虑？题目要求的是拼接得到最小，两个字符串a和b拼接方式只有a+b和b+a两种，因此需要判断的是a+b与b+a的大小，如果a+b小，就将a放在前面，否则将b放在前面，重写的规则如下：
+
+```java
+		list.sort((a,b)->(a+b).compareTo(b+a));
+```
+
+也可以这样重写：
+
+```java
+		Collections.sort(list,new Comparator<String>(){
+			@Override
+			public int compare(String o1, String o2) {
+				return (o1+o2).compareTo(o2+o1)>0?1:-1;
+			}
+		});
+```
+
+最后将排序好的list中的字符串按顺序拼接起来就是最小的字符串
+
+```java
+		StringBuilder re=new StringBuilder();
+        for(int i=0;i<n;i++)
+        {
+            re.append(list.get(i));
+        }
+        return re.toString();
+```
+
+
+
 ### 归并排序
 
 ### 148.排序链表
@@ -721,6 +768,62 @@ map最开始要加入（0，1），表示sums[0]
 
 ![转化过程](https://pic.leetcode-cn.com/2cdf411d73e7f4990c63c9ff69847c146311689ebc286d3eae715fa5c53483cf-%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202020-03-08%2010.23.03.png)
 
+### [3. 无重复字符的最长子串](https://leetcode-cn.com/problems/longest-substring-without-repeating-characters/)
+
+dp[i]表示以s[i]结尾的最长无重复字符子串，
+
+首先所有的dp[i]都为1，初始状态下，子串长度为1
+
+将s[i]与它前面的dp[i-1]个字符比较，从后往前比，因为前dp[i-1]个字符是没有重复的
+
+即从s[i-1]到s[i-dp[i-1]]就是以s[i-1]为结尾的最长无重复子串，因此将s[i]从后往前比较 ，直到相同的s[j]为止
+
+此时，dp[i]=i-j，结果re取最大的dp[i]
+
+```java
+		int[] dp=new int[n];
+        Arrays.fill(dp,1);
+        int re=1;
+        for(int i=1;i<n;i++)
+        {
+            int j=i-1;
+            while(i-j<=dp[i-1]&&s.charAt(i)!=s.charAt(j))
+            {
+                j--;
+            }
+            dp[i]=i-j;
+            re=Math.max(re,dp[i]);
+        }
+```
+
+
+
+上面的动态规划过程，每一次都要检查s[i-dp[i-1],...,i-1]中与s[i]相同的字符，如果能够记录字符s[i]出现的位置，就可以优化动态规划的过程
+
+因此使用数组pos[256]记录字符上次出现的位置，初始状态下pos[s[0]]=0，其余都是-1，表示其他的字符都没有出现过
+
+从i=1开始遍历字符串s，dp[i]取dp[i-1]+1和i-pos[s[i]]中的较小值，最好的情况就是s[i]前面的dp[i-1]个字符都没有和它重复的，否则就是前dp[i-1]个字符中有与它重复的字符，且位置为pos[s[i]]
+
+如果i-pos[s[i]]比dp[i-1]+1大，说明前i-pos[s[i]]-1个字符都不和s[i]重复，但是由于其它的字符重复，只能取dp[i-1]+1个字符，示例如下：“abcba”
+
+由于dp[i]只与dp[i-1]相关，因此不需要数组存储dp
+
+```java
+		int[] pos=new int[256];
+        Arrays.fill(pos,-1);
+        pos[s.charAt(0)]=0;
+        int dp=1;
+        int re=1;
+        for(int i=1;i<n;i++)
+        {
+            dp=Math.min(dp+1,i-pos[s.charAt(i)]);
+            pos[s.charAt(i)]=i;
+            re=Math.max(re,dp);
+        }
+```
+
+
+
 ### 5.最长回文子串
 
 [5. 最长回文子串 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/longest-palindromic-substring/)
@@ -777,6 +880,28 @@ $$
 ```
 
 
+
+### 91.解码方法
+
+[91. 解码方法 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/decode-ways/)
+
+线性dp
+
+dp[i]表示s中前i个字符即s[0~i-1]编码方法的总数
+
+如果第一个字符为0，那么直接返回0，无法解码
+
+dp初始化：dp[0]=0,dp[1]=1
+
+从第二个字符开始遍历字符串s，i=1~n-1，s[i]对应的解码方法为dp[i+1]
+
+如果s[i]=0，则只有在s[i-1]=1或2时，能够解码，dp[i+1]=dp[i]，否则无法解码，直接返回0
+
+如果s[i]!=0，s[i-1]=1或者s[i-1]=2且s[i]<6的情况，可以有两种解码方式，一种是将s[i]作为单个字母解码，还有一种是将s[i-1]和s[i]联合起来解码成一个字母，因此dp[i+1]=dp[i-1]+dp[i]
+
+其余的情况都是dp[i+1]=dp[i]，将字符s[i]解码为一个字母
+
+最终结果为dp[n]
 
 ### 96.不同的二叉搜索树
 
@@ -1316,6 +1441,18 @@ $$
 
 
 
+### 583.两个字符串的删除操作
+
+[583. 两个字符串的删除操作 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/delete-operation-for-two-strings/)
+
+本题可以在300题的基础上做
+
+先求出最长递增子序列的长度`dp[n][m]`，然后用两个字符串的长度分别减去`dp[n][m]`，求和就是删除所需的最小步数
+
+也可以直接就删除的最小步数进行动态规划
+
+
+
 ### 647.回文子串
 
 [647. 回文子串 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/palindromic-substrings/)
@@ -1563,6 +1700,54 @@ for i = 1,...,n
 
 ![转化过程](https://pic.leetcode-cn.com/2cdf411d73e7f4990c63c9ff69847c146311689ebc286d3eae715fa5c53483cf-%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202020-03-08%2010.23.03.png)
 
+### [剑指 Offer 36. 二叉搜索树与双向链表](https://leetcode-cn.com/problems/er-cha-sou-suo-shu-yu-shuang-xiang-lian-biao-lcof/)
+
+在二叉搜索树中获得递增序列就要使用中序遍历
+
+要转换成排序的循环双向链表，使用head指向最小的节点，在递归遍历的过程中使用pre指向当前节点的前驱
+
+最开始pre为空，根据中序遍历，一直遍历到二叉搜索树最左边的节点，也就是最小的节点，将head指向它，判断到达最左边是根据pre==null。处理完最左边的节点后，将pre指向该节点，然后遍历其右子树，这个过程中需要将node的left指向pre，pre.right指向pre并跟随着中序遍历不断更新pre，
+
+遍历完整个二叉搜索树之后，head指向最小的节点，也就是循环双向链表的头部，pre指向最大的节点，即链表的尾部，由于是循环双向链表，所以需要将头尾双向连接，即head.left=pre，pre.right=head
+
+```java
+	private Node head;
+    private Node pre;
+    public Node treeToDoublyList(Node root) {
+        if(root==null)
+        {
+            return head;
+        }
+        pre=null;
+        track(root);
+        //首尾相连
+        head.left=pre;
+        pre.right=head;
+        return head;
+    }
+    private void track(Node node)
+    {
+        if(node==null)
+        {
+            return;
+        }
+        track(node.left);
+        if(pre==null)//到二叉搜索树的最左边
+        {
+            head=node;
+        }
+        else
+        {
+            pre.right=node;//建立后继
+        }
+        node.left=pre;//建立前驱
+        pre=node;
+        track(node.right);
+    }
+```
+
+
+
 ### 剑指Offer 38.字符串的排列
 
 题目要求字符串数组中不能有重复元素所以需要去重操作
@@ -1704,6 +1889,116 @@ dfs过程：
 
 
 
+### [301. 删除无效的括号](https://leetcode-cn.com/problems/remove-invalid-parentheses/)
+
+对括号的判断，以一个score来记录，遍历字符串，如果是左括号就加一，如果是右括号就减一，其他字符不操作，因此字符串括号无效的情况就是score小于0，或者score过高（左括号太多）
+
+如何判断score过高？
+
+首先遍历字符串，获得左括号的数量l和右括号的数量r，score能取到的最大值max取l和r中的较小值
+
+在递归的过程中，如果score>max就说明此时score过高，括号无效
+
+```java
+		if(score<0||score>max)
+        {
+            return;
+        }
+```
+
+字符串temp合法的条件是已经遍历完了字符串s，且score=0，说明字符串中所有的括号有效
+
+为了避免重复，使用set去重，递归过程中将合法字符串加入set
+
+要求删除最小数量的无效括号，则添加到结果中的合法字符串长度都一样，且是合法字符串中最长的，使用len记录当前最长合法字符串的长度，因此 set中的所有字符串长度都等于len
+
+在递归过程中，只有当合法字符串长度不小于len时，才考虑将其加入set，并且，如果该合法字符串长度大于len，说明这时set中的所有字符串都不满足删除最小数量的五小括号这个条件，因此将set清空，将len更新为更长的该合法字符串的长度，将其加入set
+
+```java
+		if(start==s.length())
+        {
+            if(score==0&&temp.length()>=len)
+            {
+                if(temp.length()>len)
+                {
+                    set.clear();
+                    len=temp.length();
+                }
+                set.add(temp);
+            }
+            return;
+        }
+```
+
+递归方法是对于当前位置的字符
+
+如果是左括号或者右括号，可以选择将其加入字符串temp或者不加，如果加入score就要相应的加一减一，否则不用
+
+如果是其他字符，则直接加入temp
+
+每一步递归都将当前位置后移一位，即start+1
+
+```java
+	Set<String> set=new HashSet<>();
+    int len=0;
+    int max=0;
+    public List<String> removeInvalidParentheses(String s) {
+        int l=0,r=0;
+        for(char c:s.toCharArray())
+        {
+            if(c=='(')
+            {
+                l++;
+            }
+            else if(c==')')
+            {
+                r++;
+            }
+        }
+        max=Math.min(l,r);
+        dfs(s,new String(),0,0);
+        return new ArrayList<>(set);
+    }
+    private void dfs(String s,String temp,int start,int score)
+    {
+        if(score<0||score>max)
+        {
+            return;
+        }
+        if(start==s.length())
+        {
+            if(score==0&&temp.length()>=len)
+            {
+                if(temp.length()>len)
+                {
+                    set.clear();
+                    len=temp.length();
+                }
+                set.add(temp);
+            }
+            return;
+        }
+        char c=s.charAt(start);
+        if(c=='(')
+        {
+            dfs(s,temp+String.valueOf(c),start+1,score+1);
+            dfs(s,temp,start+1,score);
+        }
+        else if(c==')')
+        {
+            dfs(s,temp+String.valueOf(c),start+1,score-1);
+            dfs(s,temp,start+1,score);
+        }
+        else{
+            dfs(s,temp+String.valueOf(c),start+1,score);
+        }
+    }
+```
+
+剪枝策略
+
+首先确定最长合法字符串的长度len
+
 ### 322.零钱兑换
 
 [322. 零钱兑换 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/coin-change/)
@@ -1813,9 +2108,165 @@ rightscore表示当前玩家选择最右边的数得到的差值
 
 回溯过程中，我们可以用visited数组标记哪些数被使用过，每次我们选中一个数 i，我们就将 visited[i] 标记为true，回溯完成后，我们再将其置为false。
 
+## BFS
+
+广度优先遍历
+
+### [剑指 Offer 32 - I. 从上到下打印二叉树](https://leetcode-cn.com/problems/cong-shang-dao-xia-da-yin-er-cha-shu-lcof/)
+
+利用队列实现BFS
+
+首先将根节点入队列q，如果根节点root为空，则直接返回空数组
+
+对于队列中的每一个节点，出队后，将其值加入结果list，再将其不为空的左右子节点加入队列
+
+```java
+		q.offer(root);
+        while(!q.isEmpty())
+        {
+            TreeNode node=q.poll();
+            list.add(node.val);
+            if(node.left!=null)
+            {
+                q.offer(node.left);
+            }
+            if(node.right!=null)
+            {
+                q.offer(node.right);
+            }
+        }
+```
+
+最后将list遍历转化为数组
+
+### [剑指 Offer 32 - II. 从上到下打印二叉树 II](https://leetcode-cn.com/problems/cong-shang-dao-xia-da-yin-er-cha-shu-ii-lcof/)
+
+和32-I类似，增加层次
+
+每一层就是队列当前的所有节点，所以首先将队列长度size保留，然后将队列中的前size个节点按照32-I中的方式处理
+
+```java
+		q.offer(root);
+        while(!q.isEmpty())
+        {
+            int size=q.size();
+            list.add(new ArrayList<Integer>());
+            while(size>0)
+            {
+                TreeNode node=q.poll();
+                list.get(level).add(node.val);
+                if(node.left!=null)
+                {
+                    q.offer(node.left);
+                }
+                if(node.right!=null)
+                {
+                    q.offer(node.right);
+                }
+                size--;
+            }
+            level++;
+        }
+```
+
+### [剑指 Offer 32 - III. 从上到下打印二叉树 III](https://leetcode-cn.com/problems/cong-shang-dao-xia-da-yin-er-cha-shu-iii-lcof/)
+
+在32-II的基础上添加对层次的判断，决定是逆序还是顺序添加数值
+
+```java
+		q.offer(root);
+        while(!q.isEmpty())
+        {
+            int size=q.size();
+            List<Integer> list=new ArrayList<>();
+            while(size>0)
+            {
+                TreeNode node=q.poll();
+                if((level&1)==0)
+                {
+                    list.add(node.val);//顺序
+                }
+                else
+                {
+                    list.add(0,node.val);//逆序
+                }
+                if(node.left!=null)
+                {
+                    q.offer(node.left);
+                }
+                if(node.right!=null)
+                {
+                    q.offer(node.right);
+                }
+                size--;
+            }
+            re.add(list);
+            level++;
+        }
+```
+
+
+
 ## DFS
 
 深度优先遍历
+
+### [剑指 Offer 32 - II. 从上到下打印二叉树 II](https://leetcode-cn.com/problems/cong-shang-dao-xia-da-yin-er-cha-shu-ii-lcof/)
+
+深度优先遍历，使用层次level确定将数值添加到哪一层
+
+遍历子节点，层次level加一 
+
+需要注意的是，如果当前层次还没有初始化，先进行初始化
+
+```java
+	private void dfs(TreeNode root,int level)
+    {
+        if(root==null)
+        {
+            return;
+        }
+        if(list.size()<level+1)
+        {
+            list.add(new ArrayList<Integer>());
+        }
+        list.get(level).add(root.val);
+        dfs(root.left,level+1);
+        dfs(root.right,level+1);
+    }
+```
+
+
+
+### [剑指 Offer 32 - III. 从上到下打印二叉树 III](https://leetcode-cn.com/problems/cong-shang-dao-xia-da-yin-er-cha-shu-iii-lcof/)
+
+和32-II类似，添加了层次判断，决定是逆序还是顺序
+
+```java
+	private void dfs(TreeNode root,int level)
+    {
+        if(root==null)
+        {
+            return;
+        }
+        if(list.size()<level+1)
+        {
+            list.add(new ArrayList<Integer>());
+        }
+        if((level&1)==0)
+        {
+            list.get(level).add(root.val);//顺序
+        }
+        else
+        {
+            list.get(level).add(0,root.val);//逆序
+        }
+        dfs(root.left,level+1);
+        dfs(root.right,level+1);
+    }
+```
+
+
 
 ### 200.岛屿数量
 
@@ -1991,7 +2442,171 @@ HashSet<Integer> visited=new HashSet<>();
     }
 ```
 
+## 字典树/前缀树
 
+字典树又称前缀树，模板为：
+
+```java
+class TrieTree{
+    class TrieNode{
+        TrieNode[] links=new TrieNode[26];
+        String word;
+        private boolean isEnd;
+        public boolean isEnd()
+        {
+            return isEnd;
+        }
+    }
+    TrieNode root=new TrieNode();
+    public void addword(String word)
+    {
+        TrieNode cur=root;
+        for(int i=0;i<word.length();i++)
+        {
+            char c=word.charAt(i);
+            if(cur.links[c-'a']==null)
+            {
+                cur.links[c-'a']=new TrieNode();
+            }
+            cur=cur.links[c-'a'];
+        }
+        cur.word=word;
+        cur.isEnd=true;
+    }
+    
+}
+```
+
+
+
+### [208. 实现 Trie (前缀树)](https://leetcode-cn.com/problems/implement-trie-prefix-tree/)
+
+
+
+### [211. 添加与搜索单词 - 数据结构设计](https://leetcode-cn.com/problems/design-add-and-search-words-data-structure/)
+
+
+
+### [648. 单词替换](https://leetcode-cn.com/problems/replace-words/)
+
+首先将词典中的单词加入字典树tree
+
+将句子以空格划分为单词数组words[]
+
+对单词数组中的每个单词，在字典树中寻找最短的前缀（词根）
+
+如果字典树中没有其前缀，结果字符串加上单词本身
+
+如果字典树中有前缀，则返回其前缀
+
+### [677. 键值映射](https://leetcode-cn.com/problems/map-sum-pairs/)
+
+前缀树节点中包含links指向下面的节点，value表示到此为止的单词key对应的值val，sum表示以此为前缀的val之和，比如向树中插入<apple,5>，<ap,2>，则a对应的sum为7，a下面的p对应的sum为7，依此类推 
+
+![image-20211025151247593](C:\Users\79937\AppData\Roaming\Typora\typora-user-images\image-20211025151247593.png)
+
+```java
+	class TrieNode{
+        TrieNode[] links=new TrieNode[26];
+        //boolean isEnd;
+        int sum;
+        int value;
+    }
+```
+
+每次插入键值对，如果之前没有key（cur.value==0），则正常插入，每个字符对应的节点的sum都加上val
+
+如果已经有key，  这条路径上对应的sum还需要减去之前的val，
+
+```java
+		public void insert(String key, int val) {
+        TrieNode cur=root;
+        for(char c:key.toCharArray())
+        {
+            if(cur.links[c-'a']==null)
+            {
+                cur.links[c-'a']=new TrieNode();
+            }
+            cur.links[c-'a'].sum+=val;
+            cur=cur.links[c-'a'];
+        }
+        if(cur.value==0)
+        {
+            cur.value=val;
+            //cur.sum=val;
+        }
+        else
+        {
+            int old=cur.value;
+            cur=root;
+            for(char c:key.toCharArray())
+            {
+                cur.links[c-'a'].sum-=old;
+                cur=cur.links[c-'a'];
+            }
+            cur.value=val;
+        }
+    }
+
+```
+
+取前缀的sum就是搜索到对应的前缀prefix的最后一个字符，其sum就是结果
+
+```java
+		public int sum(String prefix) {
+        TrieNode cur=root;
+        for(char c:prefix.toCharArray())
+        {
+            if(cur.links[c-'a']==null)
+            {
+                //System.out.println(c);
+                return 0;
+            }
+            cur=cur.links[c-'a'];
+        }
+        return cur.sum;
+    }
+```
+
+也可以使用dfs遍历求val之和
+
+```java
+public int sum(String prefix) {
+        TrieNode cur=root;
+        for(char c:prefix.toCharArray())
+        {
+            if(cur.links[c-'a']==null)
+            {
+                return 0;
+            }
+            cur=cur.links[c-'a'];
+        }
+        return total(cur);
+    }
+
+    private int total(TrieNode cur)
+    {
+        int re=cur.val;
+        for(TrieNode node:cur.links)
+        {
+            if(node!=null)
+            {
+                re+=total(node);
+            }
+        }
+        return re;
+    }
+```
+
+
+
+### [720. 词典中最长的单词](https://leetcode-cn.com/problems/longest-word-in-dictionary/)
+
+字典树+dfs
+
+将词典中的单词，加入字典树
+
+深度遍历
 
 ## 投票算法
 
