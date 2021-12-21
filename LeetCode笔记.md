@@ -1,5 +1,128 @@
 # LeetCode笔记
 
+## 贪心
+
+### [397. 整数替换](https://leetcode-cn.com/problems/integer-replacement/)
+
+我们可以从二进制的角度进行分析：给定起始值 n，求解将其变为 (000...0001)_2的最小步数。
+
+对于偶数（二进制最低位为 0）而言，我们只能进行一种操作，其作用是将当前值 x 其进行一个单位的右移；
+对于奇数（二进制最低位为 1）而言，我们能够进行 +1 或 -1 操作，分析两种操作为 x 产生的影响：
+对于 +1 操作而言：最低位必然为 1，此时如果次低位为 0 的话， +1 相当于将最低位和次低位交换；如果次低位为 1 的话，+1 操作将将「从最低位开始，连续一段的 1」进行消除（置零），并在连续一段的高一位添加一个 1；
+对于 -1 操作而言：最低位必然为 1，其作用是将最低位的 1 进行消除。
+因此，对于 x 为奇数所能执行的两种操作，+1 能够消除连续一段的 1，只要次低位为 1（存在连续段），应当优先使用 +1 操作，但需要注意边界 x = 3 时的情况（此时选择 -1 操作）。
+
+```java
+	public int integerReplacement(int n) {
+        int count=0;
+        long num=n;//防止边界值溢出
+        while(num!=1){
+            if((num&1)==1){//n为奇数
+                if(num!=3&&(num&2)==2){
+                    num++;
+                }else{
+                    num--;
+                }
+            }else{
+                num=num>>1;
+            }
+            count++;
+        }
+        return count;
+    }
+```
+
+
+
+### [435. 无重叠区间](https://leetcode-cn.com/problems/non-overlapping-intervals/)
+
+​		求最少的移除区间个数，等价于尽量多保留不重叠的区间。在选择要保留区间时，区间的结
+
+尾十分重要：选择的区间结尾越小，余留给其它区间的空间就越大，就越能保留更多的区间。因
+
+此，我们采取的贪心策略为，优先保留结尾小且不相交的区间。
+
+​		具体实现方法为，先把区间按照结尾的大小进行增序排序，每次选择结尾最小且和前一个选
+
+择的区间不重叠的区间。
+
+​		在样例中，排序后的数组为 [[1,2], [1,3], [2,4]]。按照我们的贪心策略，首先初始化为区间
+
+[1,2]；由于 [1,3] 与 [1,2] 相交，我们跳过该区间；由于 [2,4] 与 [1,2] 不相交，我们将其保留。因
+
+此最终保留的区间为 [[1,2], [2,4]]。
+
+```java
+	public int eraseOverlapIntervals(int[][] intervals) {
+        if(intervals.length == 0) return 0;
+        Arrays.sort(intervals, new Comparator<int[]>() {
+		    public int compare(int[] a, int[] b){
+			    return a[1]-b[1];
+		    }
+	    });
+        int n=intervals.length;
+        int re=0;
+        int prev=0;
+        for(int i=1;i<n;i++){
+            if(intervals[i][0]<intervals[prev][1])
+            {
+                re++;
+            }
+            else{
+                prev=i;
+            }
+        }
+        return re;
+    }
+```
+
+
+
+### [665. 非递减数列](https://leetcode-cn.com/problems/non-decreasing-array/)
+
+基本思路：最多只能改变一个元素，那么遍历数组，遇到第一个不满足非递减的元素（nums[i]>nums[i+1]）改动元素，继续遍历，如果后续还有不满足非递减就返回false，直到遍历完整个数组返回true
+
+关键在于改动元素的方法，改动哪个元素？把元素改为多少？
+
+考虑最基本的情况：4，2，3
+
+遍历到4时，4>2，按照非递减原则，将4改为2就可以满足，这里就是将nums[i]改为更小的nums[i+1]
+
+但是这种改动方法在遇到如下情况时会出错：5，7，1，8
+
+遍历到7时，7大于1，如果将7改为1，那么前面的5就大于1，不满足非递减，而如果将1改为7就完全满足非递减
+
+因此这时改动的是将nums[i+1]改为nums[i]，这种情况是前面的5仍然大于1，即nums[i-1]>nums[i+1]
+
+这样就得到了改动元素的方法，保证元素不小于它之前的元素
+
+```java
+		int n=nums.length;
+        int i=0;
+        while(i<n-1){
+            if(nums[i]>nums[i+1]){
+                if(i>0&&nums[i-1]>nums[i+1]){
+                    nums[i+1]=nums[i];
+                }
+                else
+                {
+                    nums[i]=nums[i+1];
+                }
+                break;
+            }
+            i++;
+        }
+        while(i<n-1){
+            if(nums[i]>nums[i+1]){
+                return false;
+            }
+            i++;
+        }
+        return true;
+```
+
+
+
 ## 二分查找
 
 [详解二分查找算法 - murphy_gb - 博客园 (cnblogs.com)](https://www.cnblogs.com/kyoner/p/11080078.html)
@@ -25,6 +148,24 @@
 [34. 在排序数组中查找元素的第一个和最后一个位置 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/find-first-and-last-position-of-element-in-sorted-array/)
 
 二分查找获取左侧边界和右侧边界
+
+### [154. 寻找旋转排序数组中的最小值 II](https://leetcode-cn.com/problems/find-minimum-in-rotated-sorted-array-ii/)
+
+旋转排序数组可以被拆分为2个排序数组nums1，nums2，并且nums1任一元素>=nums2任一元素；因此，考虑二分法寻找这两个数组的分界点nums[i]（即第二个数组nums2的首个元素）
+
+设置left,right指针在数组两端，mid为每次二分的中点
+
+当 nums[mid] > nums[right]时，mid 一定在第 1 个排序数组中，i 一定满足 mid < i <= right，因此执行 left = mid + 1；
+当 nums[mid] < nums[right] 时，mid 一定在第 2 个排序数组中，i 一定满足 left < i <= mid，因此执行 right = mid；
+当 nums[mid] == nums[right] 时，是此题对比 153题 的难点（原因是此题中数组的元素可重复，难以判断分界点 i 指针区间）；
+例如 [1, 0, 1, 1, 1][1,0,1,1,1] 和 [1, 1, 1, 0, 1][1,1,1,0,1] ，在 left = 0, right = 4, mid = 2 时，无法判断 mid 在哪个排序数组中。
+我们采用 right = right - 1 解决此问题，证明：
+		此操作不会使数组越界：因为迭代条件保证了 right > left >= 0；
+		此操作不会使最小值丢失：假设nums[right] 是最小值，有两种情况：
+				若 nums[right] 是唯一最小值：那就不可能满足判断条件 nums[mid] == nums[right]，因为 mid < right（left != right 且 mid = (left + right) // 2 向下取整）；
+				若 nums[right] 不是唯一最小值，由于 mid < right 而 nums[mid] == nums[right]，即还有最小值存在于 [left, right - 1][left,right−1] 区间，因此不会丢失最小值。
+
+
 
 ### 162.寻找峰值
 
@@ -64,11 +205,214 @@
 
 需要注意的是最终结果的下标要通过哈希表获取
 
+
+
+### [475. 供暖器](https://leetcode-cn.com/problems/heaters/)
+
+每个房屋要么被左边的供暖器供暖，要么被右边的供暖，因此需要找到离房屋最近的供暖器，在所有房屋的这个距离中取最大的就是最小供暖半径x
+
+排序+二分查找
+
+首先对供暖器排序，使用二分查找找到房屋左边的最近的供暖器heater[index]，从而heater[index+1]就是房屋右边的最近的供暖器，在这两个距离中取较小的
+
+```java
+	private int binarySearch(int[] heaters,int house){//找到房屋左边的最近的供暖器
+        int re=0;
+        int left=0;
+        int right=heaters.length-1;
+        while(left<=right){
+            int mid=(left+right)>>1;
+            if(heaters[mid]>=house){
+                right=mid-1;
+            }
+            else {
+                left=mid+1;
+                re=mid;
+            }
+        }
+        return re;
+    }
+```
+
+
+
+同时需要考虑边界情况：所有供暖器都在房屋右边，所有供暖器都在房屋左边
+
+```java
+		Arrays.sort(heaters);
+        int x=0;
+        for(int house:houses){
+            int index=binarySearch(heaters,house);
+            if(heaters[index]>house){//所有供暖器都在房屋右边
+                x=Math.max(x,heaters[index]-house);
+            }else{
+                if(index==heaters.length-1){//所有供暖器都在房屋左边
+                    x=Math.max(x,house-heaters[index]);
+                }else{
+                    int temp=Math.min(house-heaters[index],heaters[index+1]-house);//在左右两边找离房屋最近的供暖器
+                    x=Math.max(x,temp);
+                }
+            }
+        }
+        return x;
+```
+
+
+
+### [540. 有序数组中的单一元素](https://leetcode-cn.com/problems/single-element-in-a-sorted-array/)
+
+位运算：把数组中的每个元素异或，最后的结果就是唯一元素，时间复杂度为O(n)
+
+要想达到O(logn)的时间复杂度就要使用二分查找
+
+使用left和right指向数组两端，每次二分的中点为mid，
+
+考虑如下性质：
+
+如果nums[mid]不等于nums[mid+1]也不等于nums[mid-1]，则nums[mid]就是唯一元素，直接返回
+
+否则就要考虑比nums[mid]小的元素个数less，如果less是偶数，则唯一元素比nums[mid]大，在其右边，如果less是奇数，则唯一元素比nums[mid]小，在其右边
+
+通过这样一个性质就可以写出二分范围缩小的条件，另外还需要注意边界值0和n-1
+
+```java
+		while(left<=right){
+            int mid=left+(right-left)/2;
+            if(mid>0&&nums[mid]==nums[mid-1]){
+                less=mid-1;
+            }
+            else if(mid<n-1&&nums[mid]==nums[mid+1]){
+                less=mid;
+            }else{
+                return nums[mid];
+            }
+            if((less&1)==0){//比nums[mid]小的元素有偶数个，则唯一一个元素在右边
+                left=mid+1;
+            }else{
+                right=mid-1;
+            }
+        }
+```
+
+
+
 ### 704.二分查找
 
 [704. 二分查找 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/binary-search/)
 
 最基础的二分查找
+
+
+
+## 位运算
+
+### [剑指 Offer 15. 二进制中1的个数](https://leetcode-cn.com/problems/er-jin-zhi-zhong-1de-ge-shu-lcof/)
+
+首先想到判断每一位是否为1，即将n与对应位数为1的数(1<<i)做与运算，结果不为0就表示n的该位上是1
+
+```java
+		int re=0;
+        for(int i=0;i<32;i++)
+        {
+            if((n&(1<<i))!=0)//1左移i位就是2^i
+            {
+                re++;
+            }
+        }
+        return re;
+```
+
+优化：
+
+观察这个运算：n&(n - 1)，其预算结果恰为把 n 的二进制位中的最低位的 1 变为 0 之后的结果。
+
+如：6&(6-1) = 4, 运算结果 4 即为把 6 的二进制位中的最低位的 1 变为 0 之后的结果。
+
+这样我们可以利用这个位运算的性质加速我们的检查过程，在实际代码中，我们不断让当前的 n 与 n−1 做与运算，直到 n 变为 0 即可。因为每次运算会使得 n 的最低位的 1 被翻转，因此运算次数就等于 n 的二进制位中 1 的个数。
+
+```java
+		int re = 0;
+        while (n != 0) {
+            n &= n - 1;
+            re++;
+        }
+        return re;
+```
+
+
+
+### [剑指 Offer 56 - I. 数组中数字出现的次数](https://leetcode-cn.com/problems/shu-zu-zhong-shu-zi-chu-xian-de-ci-shu-lcof/)
+
+将所有的数字异或得到sum，sum就是只出现一次的两个数的异或结果即a^b
+
+考虑把所有数字分为两组：
+1.两个只出现一次的数在不同的组中
+
+2.相同的数字在相同的组中
+
+注：这两个组的大小不一定相同
+
+分组异或就得到了a和b
+
+在异或结果中找到为1的位对应的数div，因为a^b的该位为1，所以它们的这一位不同，可以根据这一位是否为0分组，a和b就在不同的组中，而且相同的数字必定被分到一组，因为相同的数字每一位都相同，这样就满足了条件
+
+先对所有数字进行一次异或，得到两个出现一次的数字的异或值。
+
+在异或结果中找到任意为 1 的位。
+
+根据这一位对所有的数字进行分组。
+
+在每个组内进行异或操作，得到两个数字。
+
+```java
+		int sum=0;
+        for(int num:nums)
+        {
+            sum^=num;
+        }
+        int div=1;
+        while((div&sum)==0)
+        {
+            div<<=1;
+        }
+        int a=0;
+        int b=0;
+        for(int num:nums)
+        {
+            if((num&div)==0)
+            {
+                a^=num;
+            }
+            else{
+                b^=num;
+            }
+        }
+        return new int[]{a,b};
+```
+
+
+
+### [剑指 Offer 65. 不用加减乘除做加法](https://leetcode-cn.com/problems/bu-yong-jia-jian-cheng-chu-zuo-jia-fa-lcof/)
+
+如果没有进位，a与b异或就是a+b
+
+如果有进位，进位组合起来的数就是(a&b)<<1，因此还需要将a^b与它异或，直到没有进位为止
+
+```java
+	public int add(int a, int b) {
+        //无进位，用异或
+        //进位用&计算
+        while(b!=0)
+        {
+            int c=(a&b)<<1;
+            a=a^b;
+            b=c;
+        }
+        return a;
+    }
+```
+
+
 
 ## 快慢指针
 
@@ -370,6 +714,84 @@ a+(n+1)b+nc=2(a+b)⟹a=c+(n−1)(b+c)
         return re;
 ```
 
+## 队列
+
+### [剑指 Offer 59 - I. 滑动窗口的最大值](https://leetcode-cn.com/problems/hua-dong-chuang-kou-de-zui-da-zhi-lcof/)
+
+考虑使用优先队列，维护一个大根堆，滑动窗口滑动时不断更新队列，队头就是当前的最大值
+
+结果数组长度为nums.length-k+1
+
+```java
+		int n=nums.length-k+1;
+        int[] re=new int[n];
+```
+
+初始时，将数组nums的前k个元素加入优先队列，第一个滑动窗口的最大值就是当前堆顶
+
+```java
+		for(int i=0;i<k;i++)
+        {
+            q.offer(new int[]{nums[i],i});
+        }
+        re[0]=q.peek()[0];
+```
+
+后面右移窗口时，就将新的元素放入队列中，堆顶即队头的元素就是堆中所有元素的最大值，但是这个最大值可能是当前窗口左边的元素，不在当前的滑动窗口中，因此，需要将这样的元素从优先队列中移除，这样的元素位置处于滑动窗口左侧，为了方便移除这样的元素，在优先队列中使用{nums[i],i}这样的数组保存元素，优先队列中元素的排序首先考虑元素值的大小（大的在前）
+
+```java
+		PriorityQueue<int[]> q= new PriorityQueue<int[]>(new Comparator<int[]>() {
+            public int compare(int[] pair1, int[] pair2) {
+                return pair2[0] - pair1[0];
+            }
+        });
+```
+
+在窗口移动的过程中，需要不断删除上述的元素，注意队列不能为空的判断，然后加入新的右侧元素nums[i+k-1]到优先队列中，当前窗口中元素的最大值就是堆顶元素
+
+```java
+		for(int i=1;i<n;i++)
+        {
+            while(!q.isEmpty()&&q.peek()[1]<i)
+            {
+                q.poll();
+            }
+            q.offer(new int[]{nums[i+k-1],i+k-1});
+            re[i]=q.peek()[0];
+        }
+```
+
+### [264. 丑数 II](https://leetcode-cn.com/problems/ugly-number-ii/)
+
+维护一个最小堆，每次将堆顶元素取出就是下一个最小的丑数，将其分别乘以2，3，5后加入队列，加入之前使用集合set去重
+
+初始状态下队列加入1，按此规则出队列的第n个数就是第n个丑数
+
+为防止溢出，使用long类型
+
+```java
+		PriorityQueue<Long> q=new PriorityQueue<>();
+        Set<Long> set=new HashSet<>();
+        int[] a=new int[]{2,3,5};
+        q.offer(1L);
+        set.add(1L);
+        int count=1;
+        long cur=1;
+        while(count<=n){
+            for(int i=0;count<n&&i<3;i++)
+            {
+                long temp=cur*a[i];
+                if(set.add(temp))
+                {
+                    q.offer(temp);
+                }
+            }
+            cur=q.poll();
+            count++;
+        }
+        return (int)cur;
+```
+
 
 
 ## 排序
@@ -418,6 +840,14 @@ a+(n+1)b+nc=2(a+b)⟹a=c+(n−1)(b+c)
         }
         return re.toString();
 ```
+
+### [75. 颜色分类](https://leetcode-cn.com/problems/sort-colors/)
+
+三种颜色：
+
+暴力法：直接排序，Arrays.sort(nums)
+
+计数法：一趟扫描nums数组，记录0，1，2数量，然后，直接将数组nums按照0，1，2的顺序重构
 
 
 
@@ -486,7 +916,8 @@ a+(n+1)b+nc=2(a+b)⟹a=c+(n−1)(b+c)
         {
             p.next=a;
         }
-        else{
+        else
+        {
             p.next=b;
         }
         return newhead.next;
@@ -571,7 +1002,11 @@ a+(n+1)b+nc=2(a+b)⟹a=c+(n−1)(b+c)
 
 遍历完所有项目后，得到可获得的最大资本
 
+### [剑指 Offer 41. 数据流中的中位数](https://leetcode-cn.com/problems/shu-ju-liu-zhong-de-zhong-wei-shu-lcof/)
 
+使用大根堆和小根堆，并且保证两堆size之差不大于1
+
+约定大根堆min存放较小的一半数，小根堆max存放较大的一半数
 
 ## 滑动窗口
 
@@ -744,7 +1179,7 @@ map最开始要加入（0，1），表示sums[0]
             {
                 re+=map.get(sums[i+1]-k);
             }
-            		map.put(sums[i+1],map.getOrDefault(sums[i+1],0)+1);
+            map.put(sums[i+1],map.getOrDefault(sums[i+1],0)+1);
         }
 ```
 
@@ -881,6 +1316,67 @@ $$
 
 
 
+### [72. 编辑距离](https://leetcode-cn.com/problems/edit-distance/)
+
+将word1转换为word2，可以进行三种操作
+
+定义`dp[i][j]`表示将word1的前 i 个字符转换为word2的前 j 个字符需要的最少操作数
+
+因此只需要考虑对于字符word1[i] 和word2[j] 
+
+如果两个字符不相等，则可以将word1[i]替换为word2[j]，这样所需要的最少操作数就是`dp[i-1][j-1]+1`，也可以将word1[i]删除，所需操作数就是`dp[i-1][j]+1`，也可以向word1中插入word2[j]，所需操作数就是`dp[i][j-1]+1`，`dp[i][j]`只能取这三种情况的最小值
+
+如果两个字符相等，则不需要替换，所需要的最少操作数就是`dp[i-1][j-1]`，不过还是需要和删除，插入的另外两种情况比较，取最小值
+
+还需要考虑，字符串长度为0的特殊情况：
+
+如果 i=0，word1的前0个字符，转化为word2的前j个字符，最少操作就是往word1添加word2的 j 个字符，即操作数为 j
+
+如果 j=0，word1的前i个字符，转化为word2的前0个字符，最少操作就是删除word1的 i 个字符，即操作数为 i
+
+从而得到状态转移方程：
+$$
+dp[i][j] = \begin{cases}
+j &\text{i=0}\\
+i &\text{j=0}\\
+min(dp[i-1][j-1]+1,dp[i-1][j]+1,dp[i][j-1]+1) &\text{word1[i]!=word2[j]}\\
+min(dp[i-1][j-1],dp[i-1][j]+1,dp[i][j-1]+1) &\text{word1[i]=word2[j]}\\
+
+\end{cases}
+$$
+最后的答案就是`dp[m][n]`(m，n分别为word1，word2的长度)
+
+```java
+	//word1[i]和word2[j]
+    //如果两个字符相等，则可以不进行替换操作，需要和进行另外两种操作的操作数比较
+    //如果不相等，有三种选择，将word1[i]替换成word2[j]，插入word2[j]，删除word1[i]
+    public int minDistance(String word1, String word2) {
+        int m=word1.length();
+        int n=word2.length();
+        int[][] dp=new int[m+1][n+1]; //dp[i][j]表示word1的前i个字符转化为word2的前j个字符需要的最少操作数
+        char[] a=word1.toCharArray();
+        char[] b=word2.toCharArray();
+        for(int i=0;i<=m;i++){//word2的前0个字符，word1需要全删除
+            dp[i][0]=i;
+        }
+        for(int i=0;i<=n;i++){//word1的前0个字符，word1需要全插入字符
+            dp[0][i]=i;
+        }
+        for(int i=1;i<=m;i++){
+            for(int j=1;j<=n;j++){
+                if(a[i-1]==b[j-1]){
+                    dp[i][j]=Math.min(Math.min(dp[i-1][j]+1,dp[i][j-1]+1),dp[i-1][j-1]);
+                }else{
+                    dp[i][j]=Math.min(Math.min(dp[i-1][j]+1,dp[i][j-1]+1),dp[i-1][j-1]+1);
+                }
+            }
+        }
+        return dp[m][n];
+    }
+```
+
+
+
 ### 91.解码方法
 
 [91. 解码方法 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/decode-ways/)
@@ -969,9 +1465,54 @@ min(dp[i-1][j-1],dp[i-1][j],dp[i][j-1]) &\text{matrix[i][j]=1}\\
 $$
 题解为`dp[i][j]`中的最大值的平方（题解是面积）
 
-### 279.完全平方数
 
-[279. 完全平方数 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/perfect-squares/)
+
+### [264. 丑数 II](https://leetcode-cn.com/problems/ugly-number-ii/)
+
+使用数组dp，dp[i]表示第i+1个丑数，第n个丑数即为dp[n-1]
+
+初始dp[0]=1，最小的丑数是1
+
+本题难点在于如何找到下一个最小的丑数，丑数有这样一个性质：丑数只能由丑数相乘得到，质因子就是2，3，5
+
+因此使用index数组保存位置，表示下一个丑数是当前位置的丑数乘以对应的质因子得到的，三个质因子2，3，5对应的位置是index[0],index[1],index[2]
+
+初始状态下，三个位置都是0
+
+从i=1~n-1，dp[i]=min(dp[index[0]]*2,dp[index[1]]*3,dp[index[2]]*5)
+
+并且，通过与质因子相乘得到最小丑数的对应丑数位置index[i]需要加一，表示往前移动，达到去重的目的
+
+```java
+		int[] dp=new int[n];
+        dp[0]=1;
+        int[] index=new int[3];
+        for(int i=1;i<n;i++)
+        {
+            int a=dp[index[0]]*2;
+            int b=dp[index[1]]*3;
+            int c=dp[index[2]]*5;
+            int next=Math.min(a,Math.min(b,c));
+            if(next==a)
+            {
+                index[0]++;
+            }
+            if(next==b)
+            {
+                index[1]++;
+            }
+            if(next==c)
+            {
+                index[2]++;
+            }
+            dp[i]=next;
+        }
+        return dp[n-1];
+```
+
+
+
+### [279. 完全平方数](https://leetcode-cn.com/problems/perfect-squares/)
 
 n为正整数，因此组成和为n的完全平方数的范围是1~n^(1/2)
 
@@ -997,9 +1538,9 @@ for(int i=1;i<=n;i++)
 
 时间复杂度：O(n*sqrt(n))O(n∗sqrt(n))，sqrt 为平方根
 
-### 300.最长递增子序列
 
-[300. 最长递增子序列 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/longest-increasing-subsequence/)
+
+### [300. 最长递增子序列](https://leetcode-cn.com/problems/longest-increasing-subsequence/)
 
 定义dp[i]为以nums[i]结尾的最长子序列的长度
 
@@ -1028,6 +1569,31 @@ $$
             re=Math.max(re,dp[i]);
         }
 ```
+
+
+
+本题还可以使用二分查找将时间复杂度降低为 *O*(*n* log *n*)。我们定义一个 dp 数组，其中 dp[k]存储长度为 k+1 的最长递增子序列的最后一个数字。我们遍历每一个位置 i，如果其对应的数字大于 dp 数组中所有数字的值，那么我们把它放在 dp 数组尾部，表示最长递增子序列长度加 1；如果我们发现这个数字在 dp 数组中比数字 *a* 大、比数字 *b* 小，则我们将 *b* 更新为此数字，使得之后构成递增序列的可能性增大。以这种方式维护的 dp 数组永远是递增的，因此可以用二分查找加速搜索。
+
+```java
+	public int lengthOfLIS(int[] nums) {
+        int n=nums.length;
+        //dp中存放的为严格递增子序列
+        int[] dp=new int[n+1];
+        int size=1;//size为严格递增子序列的长度
+        dp[size]=nums[0];
+        for(int i=1;i<n;i++){
+            if(dp[size]<nums[i]){//如果nums[i]比递增子序列中最大元素还大，直接将其加入序列，并将长度size加一
+                dp[++size]=nums[i];
+            }else{
+                int index=binarysearch(dp,size,nums[i]);//找到dp中第一个比nums[i]大的数
+                dp[index]=nums[i];
+            }
+        }
+        return size;
+    }
+```
+
+
 
 ### 309.最佳买卖股票时机含冷冻期
 
@@ -1177,6 +1743,73 @@ $$
 
 
 
+### [474. 一和零](https://leetcode-cn.com/problems/ones-and-zeroes/)
+
+转化为0-1背包问题，有两个背包的大小，即0的数量和1的数量
+
+```java
+	//0-1背包问题
+    public int findMaxForm(String[] strs, int m, int n) {
+        int len=strs.length;
+        int[][] count=new int[len][2];//将字符串数组中每个字符串的0和1数量保存下来
+        for(int i=0;i<len;i++){
+            for(char c:strs[i].toCharArray()){
+                if(c=='0'){
+                    count[i][0]++;
+                }else{
+                    count[i][1]++;
+                }
+            }
+        }
+        int[][][] dp=new int[len+1][m+1][n+1];
+        for(int i=1;i<=len;i++){
+            for(int j=0;j<=m;j++){
+                for(int k=0;k<=n;k++){
+                    int count0=count[i-1][0];
+                    int count1=count[i-1][1];
+                    dp[i][j][k]=dp[i-1][j][k];
+                    if(j>=count0&&k>=count1){
+                        dp[i][j][k]=Math.max(dp[i][j][k],1+dp[i-1][j-count0][k-count1]);
+                    }
+                }
+            }
+        }
+        return dp[len][m][n];
+    }
+```
+
+
+
+空间压缩优化
+
+注意遍历顺序
+
+```java
+	public int findMaxForm(String[] strs, int m, int n) {
+        int[][] dp=new int[m+1][n+1];
+        for(String s:strs){
+            int count0=0,count1=0;
+            for(char c:s.toCharArray()){
+                if(c=='0'){
+                    count0++;
+                }else{
+                    count1++;
+                }
+            }
+            for(int j=m;j>=count0;j--){
+                for(int k=n;k>=count1;k--){
+                    dp[j][k]=Math.max(dp[j][k],1+dp[j-count0][k-count1]);
+                }
+            }
+        }
+        return dp[m][n];
+    }
+```
+
+
+
+
+
 ### 486.预测赢家
 
 [486. 预测赢家 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/predict-the-winner/)
@@ -1271,6 +1904,10 @@ dp[i-1][j]+dp[i-1][j-num] &\text{j>=num}\\
 \end{cases}
 $$
 题解为dp[n] [neg]
+
+
+
+
 
 ### 516.最长回文子序列
 
@@ -1440,6 +2077,14 @@ $$
 ```
 
 
+
+### [542. 01 矩阵](https://leetcode-cn.com/problems/01-matrix/)
+
+一般来说，因为这道题涉及到四个方向上的最近搜索，所以很多人的第一反应可能会是广度优先搜索。但是对于一个大小 *O*(*mn*) 的二维数组，对每个位置进行四向搜索，最坏情况的时间复杂度（即全是 1）会达到恐怖的 *O*(*m*2*n*2)。
+
+一种办法是使用一个 dp 数组做 memoization，使得广度优先搜索不会重复遍历相同位置；
+
+另一种更简单的方法是，我们从左上到右下进行一次动态搜索，再从右下到左上进行一次动态搜索。两次动态搜索即可完成四个方向上的查找。
 
 ### 583.两个字符串的删除操作
 
@@ -1699,6 +2344,32 @@ for i = 1,...,n
 求方案具体内容用回溯法
 
 ![转化过程](https://pic.leetcode-cn.com/2cdf411d73e7f4990c63c9ff69847c146311689ebc286d3eae715fa5c53483cf-%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202020-03-08%2010.23.03.png)
+
+回溯法（backtracking）是优先搜索的一种特殊情况，又称为试探法，常用于需要记录节点状
+
+态的深度优先搜索。通常来说，排列、组合、选择类问题使用回溯法比较方便。
+
+顾名思义，回溯法的核心是回溯。在搜索到某一节点的时候，如果我们发现目前的节点（及
+
+其子节点）并不是需求目标时，我们回退到原来的节点继续搜索，并且把在目前节点修改的状态 
+
+还原。这样的好处是我们可以始终只对图的总状态进行修改，而非每次遍历时新建一个图来储存
+
+状态。在具体的写法上，它与普通的深度优先搜索一样，都有 [修改当前节点状态]→[递归子节
+
+点] 的步骤，只是多了回溯的步骤，变成了 [修改当前节点状态]→[递归子节点]→[回改当前节点
+
+状态]。
+
+没有接触过回溯法的读者可能会不明白我在讲什么，这也完全正常，希望以下几道题可以让
+
+您理解回溯法。如果还是不明白，可以记住两个小诀窍，一是按引用传状态，二是所有的状态修 
+
+改在递归完成后回改。
+
+回溯法修改一般有两种情况，一种是修改最后一位输出，比如排列组合；一种是修改访问标
+
+记，比如矩阵里搜字符串。
 
 ### [剑指 Offer 36. 二叉搜索树与双向链表](https://leetcode-cn.com/problems/er-cha-sou-suo-shu-yu-shuang-xiang-lian-biao-lcof/)
 
@@ -2112,6 +2783,22 @@ rightscore表示当前玩家选择最右边的数得到的差值
 
 广度优先遍历
 
+广度优先搜索（breadth-fifirst search，BFS）不同与深度优先搜索，它是一层层进行遍历的，因
+
+此需要用先入先出的队列而非先入后出的栈进行遍历。由于是按层次进行遍历，广度优先搜索时
+
+按照“广”的方向进行遍历的，也常常用来处理最短路径等问题。
+
+这里要注意，深度优先搜索和广度优先搜索都可以处理可达性问题，即从一个节点开始是否
+
+能达到另一个节点。因为深度优先搜索可以利用递归快速实现，很多人会习惯使用深度优先搜索
+
+刷此类题目。实际软件工程中，笔者很少见到递归的写法，因为一方面难以理解，另一方面可能
+
+产生栈溢出的情况；而用栈实现的深度优先搜索和用队列实现的广度优先搜索在写法上并没有太
+
+大差异，因此使用哪一种搜索方式需要根据实际的功能需求来判断。
+
 ### [剑指 Offer 32 - I. 从上到下打印二叉树](https://leetcode-cn.com/problems/cong-shang-dao-xia-da-yin-er-cha-shu-lcof/)
 
 利用队列实现BFS
@@ -2207,6 +2894,126 @@ rightscore表示当前玩家选择最右边的数得到的差值
 
 
 
+### [310. 最小高度树](https://leetcode-cn.com/problems/minimum-height-trees/)
+
+首先，我们看了样例，发现这个树并不是二叉树，是多叉树。
+然后，我们可能想到的解法是：根据题目的意思，就挨个节点遍历bfs，统计下每个节点的高度，然后用map存储起来，后面查询这个高度的集合里最小的就可以了。
+但是经过尝试这样会超时。
+于是我们看图（题目介绍里面的图）分析一下，发现，越是靠里面的节点越有可能是最小高度树。
+所以，我们可以这样想，我们可以倒着来。
+我们从边缘开始，先找到所有出度为1的节点，也就是叶子节点，然后把所有出度为1的节点进队列，然后不断地bfs，最后找到的就是两边同时向中间靠近的节点，那么这个中间节点就相当于把整个距离二分了，那么它当然就是到两边距离最小的点，也就是到其他叶子节点最近的节点了。
+
+得到的解决方案就是寻找最中间的节点，一层一层地删除叶子节点，最后一层就是答案、
+
+```java
+	//最中间的节点就是答案，一层一层地删除叶子节点
+    public List<Integer> findMinHeightTrees(int n, int[][] edges) {
+        List<Integer>[] arr=new ArrayList[n];//保存与当前节点的邻接节点
+        Queue<Integer> q=new LinkedList<>();
+        List<Integer> re=new ArrayList<>();
+        if(n==1){//只有一个节点，直接返回0，面向测试用例编程
+            re.add(0);
+            return re;
+        }
+        int[] degree=new int[n];//保存节点的度
+        for(int i=0;i<n;i++){
+            arr[i]=new ArrayList<Integer>();
+        }
+        for(int[] edge:edges){//根据边，得到节点互通的关系
+            arr[edge[0]].add(edge[1]);
+            arr[edge[1]].add(edge[0]);
+            degree[edge[0]]++;
+            degree[edge[1]]++;
+        }
+        for(int i=0;i<n;i++){
+            if(degree[i]==1){
+                q.offer(i);//将度为1的节点即叶子节点入队列
+            }
+        }
+        while(!q.isEmpty()){
+            re=new ArrayList<>();//每一轮re都会更新
+            int size=q.size();
+            while(size>0){
+                size--;
+                int cur=q.poll();
+                re.add(cur);//re每一轮bfs都会更新，最后一轮bfs到的叶子节点为答案
+                for(int i=0;i<arr[cur].size();i++){
+                    int temp=arr[cur].get(i);
+                    degree[temp]--;//将当前节点的邻接节点度减一，即相当于把当前节点cur删除
+                    if(degree[temp]==1){
+                        q.offer(temp);//将度为1 的节点即叶子节点入队列
+                    }
+                }
+            }
+        }
+        return re;//此时的re为最中间的一层叶子节点，就是答案
+    }
+```
+
+
+
+### [934. 最短的桥](https://leetcode-cn.com/problems/shortest-bridge/)
+
+先确定第一个岛的边界，可以通过dfs实现，把第一个岛都变成-1
+
+从边界开始bfs，一圈一圈往外扩张，直到与另一个岛相邻，扩张的圈数就是答案
+
+用队列实现bfs，具体的，在dfs确定第一个岛的范围时，将第一个岛边界的外围水坐标入队列
+
+```java
+	private void dfs(int[][] grid,Queue<int[]>q,int i,int j){
+        if(i<0||i>=n||j<0||j>=n||grid[i][j]==-1){
+            return;
+        }
+        if(grid[i][j]==0)
+        {
+            q.offer(new int[]{i,j});//第一个岛边界外的点进入队列，便于后续bfs
+            return;
+        }
+        grid[i][j]=-1;
+        for(int k=0;k<4;k++){
+            dfs(grid,q,i+move[k],j+move[k+1]);
+        }
+    }
+```
+
+
+
+之后将队列中的水坐标出队列，并对其上下左右的坐标进行判断：
+
+如果是0，则是水，将其入队列，并置为-1，表明扩张
+
+如果是-1，则是第一座岛的范围，不做处理
+
+如果是1，则是第二座岛，扩张结束，返回圈数level
+
+```java
+		//bfs一圈一圈地扩张
+        int level=0;//扩张的圈数
+        while(!q.isEmpty()){
+            level++;//由于队列中是第一座岛的外围水坐标，相当于已经扩张了一圈，因此圈数level初始就需要加1，
+            int size=q.size();
+            while(size>0){
+                size--;
+                int[] cur=q.poll();
+                for(int k=0;k<4;k++){
+                    int x=cur[0]+move[k];
+                    int y=cur[1]+move[k+1];
+                    if(x>=0&&x<n&&y>=0&&y<n){//防止越界
+                        if(grid[x][y]==0){//是水，扩张
+                            grid[x][y]=-1;
+                            q.offer(new int[]{x,y});
+                        }else if(grid[x][y]==1){//到了下一个岛
+                            return level;
+                        }
+                    }
+                }
+            }
+        }
+```
+
+
+
 ## DFS
 
 深度优先遍历
@@ -2266,6 +3073,64 @@ rightscore表示当前玩家选择最右边的数得到的差值
     }
 ```
 
+### [剑指 Offer 37. 序列化二叉树](https://leetcode-cn.com/problems/xu-lie-hua-er-cha-shu-lcof/)
+
+可以不考虑LeetCode使用的序列化方法，而是使用先序遍历，并且将节点的空左右节点补全，如果节点为空则字符串加入"null"，并以”,“分割每个节点的值，序列化过程如下：
+
+```java
+	public String serialize(TreeNode root) {
+        StringBuilder sb=new StringBuilder();
+        if(root==null)
+        {
+            return "null,";
+        }
+        else{
+            sb.append(root.val+",");
+        }
+        sb.append(serialize(root.left));
+        sb.append(serialize(root.right));
+        return sb.toString();
+    }
+```
+
+
+
+反序列化首先将字符串以”,“分割为数组，并构造列表list，
+
+```java
+	public TreeNode deserialize(String data) {
+        //TreeNode root=null;
+        String[] arr=data.split(",");
+        List<String> list=new ArrayList<>();
+        for(String s:arr)
+        {
+            list.add(s);
+        }
+        return dfs(list);
+    }
+
+```
+
+使用dfs构造二叉树，构造过程中，如果是”null“，表明该节点为空，直接返回，空节点没有子节点
+
+否则不为空，将值取出并生成新节点，每次都是取列表的第一个元素，因此每次取出后都需要删除列表的第一个元素，来表示构造的进度
+
+```java
+	private TreeNode dfs(List<String> list)
+    {
+        String cur=list.get(0);
+        list.remove(0);
+        if(cur.equals("null"))
+        {
+            return null;
+        }
+        TreeNode node=new TreeNode(Integer.parseInt(cur));
+        node.left=dfs(list);
+        node.right=dfs(list);
+        return node;
+    }
+```
+
 
 
 ### 200.岛屿数量
@@ -2277,6 +3142,31 @@ rightscore表示当前玩家选择最右边的数得到的差值
 为了求出岛屿的数量，我们可以扫描整个二维网格。如果一个位置为 1，则以其为起始节点开始进行深度优先搜索。在深度优先搜索的过程中，每个搜索到的 1都会被重新标记为 0，这样就可以唯一确定每一个岛屿。
 
 最终岛屿的数量就是我们进行深度优先搜索的次数。
+
+### [417. 太平洋大西洋水流问题](https://leetcode-cn.com/problems/pacific-atlantic-water-flow/)
+
+如果一个点一个点的判断能否流入大西洋，太平洋，那么深度遍历将会非常复杂
+
+逆向思维，看边界能与哪些点连接，左上为一组，右下为一组，然后两组取公共点就是答案
+
+点的上下左右移动可以取巧：
+
+```java
+int[] move=new int[]{-1,0,1,0,-1};
+```
+
+对于点(i,j)，上下左右移动后的点就是（i+move[k],j+move[k+1]）k=0~3
+
+
+
+```java
+		m=heights.length;
+        n=heights[0].length;
+        boolean[][] reachP=new boolean[m][n];//记录能否到太平洋
+        boolean[][] reachA=new boolean[m][n];//记录能否到大西洋
+```
+
+
 
 ### 538.把二叉搜索树转换为累加树
 
@@ -2660,3 +3550,56 @@ public int sum(String prefix) {
 ```
 
   
+
+## 洗牌算法
+
+### [384. 打乱数组](https://leetcode-cn.com/problems/shuffle-an-array/)
+
+暴力法
+
+随机生成n个不同的数组下标，并使用set来去重，时间复杂度为O(n^2)
+
+```java
+	public int[] shuffle() {
+        Set<Integer> set=new HashSet<>();
+        Random rd = new Random();
+        int[] nums=new int[n];
+        for(int i=0;i<n;i++){
+            int index=rd.nextInt(n);
+            while(!set.add(index)){
+                index=rd.nextInt(n);
+            }
+            nums[i]=arr[index];
+        }
+        return nums;
+    }
+```
+
+洗牌算法
+共有 n 个不同的数，根据每个位置能够选择什么数，共有 n! 种组合。
+
+题目要求每次调用 shuffle 时等概率返回某个方案，或者说每个元素都够等概率出现在每个位置中。
+
+我们可以使用 Knuth 洗牌算法，在 O(n) 复杂度内等概率返回某个方案。
+
+具体的，我们从前往后尝试填充 [0, n - 1][0,n−1] 该填入什么数时，通过随机当前下标与（剩余的）哪个下标进行值交换来实现。
+
+对于下标 x 而言，我们从 [x, n - 1][x,n−1] 中随机出一个位置与 x 进行值交换，当所有位置都进行这样的处理后，我们便得到了一个公平的洗牌方案。
+
+例如，对于下标为 0 位置，从 [0, n - 1][0,n−1] 随机一个位置进行交换，共有 n 种选择；下标为 1 的位置，从 [1, n - 1][1,n−1] 随机一个位置进行交换，共有 n−1 种选择 ... 且每个位置的随机位置交换过程相互独立。
+
+```java
+	public int[] shuffle() {
+        Set<Integer> set=new HashSet<>();
+        Random rd = new Random();
+        int[] nums=(int[])Arrays.copyOf(arr,n);
+        for(int i=0;i<n;i++){
+            int j=rd.nextInt(n-i)+i;
+            int temp=nums[i];
+            nums[i]=nums[j];
+            nums[j]=temp;
+        }
+        return nums;
+    }
+```
+
