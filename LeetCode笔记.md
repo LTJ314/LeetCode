@@ -306,6 +306,10 @@
 
 ## 位运算
 
+二进制的性质
+
+巧用异或
+
 ### [剑指 Offer 15. 二进制中1的个数](https://leetcode-cn.com/problems/er-jin-zhi-zhong-1de-ge-shu-lcof/)
 
 首先想到判断每一位是否为1，即将n与对应位数为1的数(1<<i)做与运算，结果不为0就表示n的该位上是1
@@ -339,9 +343,11 @@
         return re;
 ```
 
-
+### [260. 只出现一次的数字 III](https://leetcode-cn.com/problems/single-number-iii/)
 
 ### [剑指 Offer 56 - I. 数组中数字出现的次数](https://leetcode-cn.com/problems/shu-zu-zhong-shu-zi-chu-xian-de-ci-shu-lcof/)
+
+与260题相同
 
 将所有的数字异或得到sum，sum就是只出现一次的两个数的异或结果即a^b
 
@@ -412,6 +418,32 @@
     }
 ```
 
+### [318. 最大单词长度乘积](https://leetcode-cn.com/problems/maximum-product-of-word-lengths/)
+
+怎样快速判断两个字母串是否含有重复数字呢？可以为每个字母串建立一个长度为 26 的二进制数字，每个位置表示是否存在该字母。如果两个字母串含有重复数字，那它们的二进制表示的按位与不为 0。同时，我们可以建立一个哈希表来存储字母串（在数组的位置）到二进制数字的映射关系，方便查找调用。
+
+```java
+	public int maxProduct(String[] words) {
+        int n=words.length;
+        int[] mask=new int[n];
+        for(int i=0;i<n;i++){
+            int length=words[i].length();
+            for(int j=0;j<length;j++){
+                mask[i]=mask[i]|(1<<(words[i].charAt(j)-'a'));
+            }
+        }
+        int re=0;
+        for(int i=0;i<n;i++){
+            for(int j=i+1;j<n;j++){
+                if((mask[i]&mask[j])==0){
+                    re=Math.max(re,words[i].length()*words[j].length());
+                }
+            }
+        }
+        return re;
+    }
+```
+
 
 
 ## 快慢指针
@@ -448,6 +480,44 @@ a+(n+1)b+nc=2(a+b)⟹a=c+(n−1)(b+c)
 有了 a=c+(n-1)(b+c)的等量关系，我们会发现：从相遇点到入环点的距离加上 n−1 圈的环长，恰好等于从链表头部到入环点的距离。
 
 因此，当发现slow 与 fast 相遇时，head指向链表头部；随后，head和slow 每次向后移动一个位置。最终，它们会在入环点相遇。
+
+### [202. 快乐数](https://leetcode-cn.com/problems/happy-number/)
+
+最直接想到的是可以使用set来检查是否有循环出现
+
+如果将每个数看作链表节点，就可以转化为判断链表是否有环的问题
+
+```java
+ 	public boolean isHappy(int n) {
+        if(n==1){
+            return true;
+        }
+        int slow=n;
+        int fast=nextNum(n);
+        while(slow!=fast){
+            if(fast==1||slow==1){
+                return true;
+            }
+            slow=nextNum(slow);
+            fast=nextNum(nextNum(fast));
+        }
+        return false;
+    }
+```
+
+每个节点指向下一个节点的值通过计算它每个位置上的数字的平方和得到
+
+```java
+	private int nextNum(int n){
+        int sum=0;
+        while(n>0){
+            int temp=n%10;
+            sum+=temp*temp;
+            n=n/10;
+        }
+        return sum;
+    }
+```
 
 
 
@@ -1479,7 +1549,7 @@ $$
 
 初始状态下，三个位置都是0
 
-从i=1~n-1，dp[i]=min(dp[index[0]]*2,dp[index[1]]*3,dp[index[2]]*5)
+从i=1~n-1，`dp[i]=min(dp[index[0]]*2,dp[index[1]]*3,dp[index[2]]*5)`
 
 并且，通过与质因子相乘得到最小丑数的对应丑数位置index[i]需要加一，表示往前移动，达到去重的目的
 
@@ -1707,9 +1777,9 @@ $$
 
 如果数组元素总和sum为奇数，那么绝对不可能存在，直接返回false
 
-如果为偶数，考虑两个子集中的一个子集是否能达到m=sum/2，为方便dp，设该子集为较小的那一个，那么动态规划的目的就是让该子集的和取最大不断接近m
+如果为偶数，考虑两个子集中的一个子集是否能达到`m=sum/2`，为方便dp，设该子集为较小的那一个，那么动态规划的目的就是让该子集的和取最大不断接近m
 
-dp[i] [j] 表示数组前 i 个元素中，不大于 j 的最大值，该问题转化为0-1背包问题，num表示数组nums中的第 i 个元素
+`dp[i][j]` 表示数组前 i 个元素中，不大于 j 的最大值，该问题转化为0-1背包问题，num表示数组nums中的第 i 个元素
 
 如果j<num，只能取前i-1个元素
 
@@ -1726,7 +1796,7 @@ $$
 
 空间优化：
 
-使用一维数组dp[m+1]，为了防止上一层循环的dp[0,.....,j-1]被覆盖，循环的时候 j 只能逆向遍历
+使用一维数组dp[m+1]，为了防止上一层循环的`dp[0,.....,j-1]`被覆盖，循环的时候 j 只能逆向遍历
 
 ```java
 	   for(int i=0;i<n;i++)
@@ -1816,13 +1886,13 @@ $$
 
 对玩家来说，他需要尽可能地将他与另一名玩家分数的差值最大化
 
-dp[i] [j] 表示当数组剩下的部分为下标 i 到下标 j 时，当前玩家与另一个玩家的分数之差的最大值，当前玩家不一定是先手
+`dp[i][j]` 表示当数组剩下的部分为下标 i 到下标 j 时，当前玩家与另一个玩家的分数之差的最大值，当前玩家不一定是先手
 
-只有当i<=j时，数组剩下的部分才有意义，因此当i>j时，dp[i] [j]=0
+只有当 i<=j 时，数组剩下的部分才有意义，因此当 i>j 时，`dp[i][j]=0`
 
-当i=j时，dp[i] [i]表示只剩下第 i 个分数，那么玩家只能选择这一个，因此将dp[i] [i]初始化为nums[i]，其余的为0
+当 i=j 时，`dp[i][i]`表示只剩下第 i 个分数，那么玩家只能选择这一个，因此将`dp[i][i]`初始化为nums[i]，其余的为0
 
-对于当前的玩家来说，如果选择最左边的数即nums[i]，差值为nums[i]减去下一个玩家的dp[i+1] [j]，如果选择最右边的数即nums[j]，差值为nums[j]减去dp[i] [j-1]，这是根据留给下一个玩家的数组剩余部分而定的，而当前玩家需要选择这两者中最大的
+对于当前的玩家来说，如果选择最左边的数即nums[i]，差值为nums[i]减去下一个玩家的`dp[i+1][j]`，如果选择最右边的数即nums[j]，差值为nums[j]减去`dp[i][j-1]`，这是根据留给下一个玩家的数组剩余部分而定的，而当前玩家需要选择这两者中最大的
 
 状态转移方程为：
 $$
@@ -1830,7 +1900,7 @@ dp[i][j]=max(nums[i]-dp[i+1][j],nums[j]-dp[i][j-1]) 当i<j
 $$
 我们看看状态转移的方向，它指导我们填表时采取什么计算方向，才不会出现：求当前的状态时，它所依赖的状态还没求出来。
 
-dp[i] [j]依赖于dp[i+1] [j]和dp[i] [j-1]，因此 i 的值是从大到小，而 j 的值是从小到大，并且 j 要大于 i
+`dp[i][j]`依赖于`dp[i+1][j]和dp[i][j-1]`，因此 i 的值是从大到小，而 j 的值是从小到大，并且 j 要大于 i
 
 
 
@@ -1846,9 +1916,9 @@ for(int i=n-2;i>=0;i--)
 }
 ```
 
-最后的结果差值为dp[0] [n-1]
+最后的结果差值为`dp[0][n-1]`
 
-因为dp[i] [j]依赖于dp[i+1] [j]和dp[i] [j-1]，可以进行空间优化，遍历顺序照常
+因为`dp[i][j]`依赖于`dp[i+1][j]`和`dp[i][j-1]`，可以进行空间优化，遍历顺序照常
 
 优化后的版本如下
 
@@ -1872,13 +1942,13 @@ for(int i=n-2;i>=0;i--)
 
 假设数组中减的整数之和为neg
 
-则有 target=sum-2*neg
+则有 `target=sum-2*neg`
 
-从而 neg=(sum-target)/2，且sum-target必须为非负偶数（因为neg为非负整数）
+从而 `neg=(sum-target)/2`，且`sum-target`必须为非负偶数（因为neg为非负整数），否则无解
 
 将题目转化为nums数组中取任意个整数和为neg的方案数量
 
-dp[i] [j]表示数组nums中前 i 个整数组成的结果为 j 的方案数量，dp[n] [neg]即为答案
+`dp[i][j]`表示数组nums中前 i 个整数组成的结果为 j 的方案数量，dp[n] [neg]即为答案
 
 边界情况为：
 
@@ -1892,7 +1962,7 @@ dp[0][j] = \begin{cases}
 0 &\text{j>0}\\
 \end{cases}
 $$
-对于nums中第i个整数num，如果 j 小于num则dp[i] [j]=dp[i-1] [j]，否则dp[i] [j]=dp[i-1] [j]+dp[i-1] [j-num]。
+对于nums中第i个整数num，如果 j 小于num则`dp[i][j]=dp[i-1][j]`，否则`dp[i][j]=dp[i-1][j]+dp[i-1][j-num]`。
 
 j<num时，num不能作为j的一部分加入，j>=num时，num既可以不加入，也可以加入
 
@@ -1930,7 +2000,7 @@ dp[i+1][j-1]+2 &\text{s(i)=s(j)}\\
 max(dp[i+1][j],dp[i][j-1]) &\text{s(i)!=s(j)}\\
 \end{cases}
 $$
-题解为dp[0] [n-1]
+题解为`dp[0][n-1]`
 
 遍历的顺序需要注意，由于`dp[i][j]`需要通过`dp[i+1][j-1]`,`dp[i+1][j]`和`dp[i][j-1]`
 
@@ -1987,7 +2057,7 @@ dp[i-1][j] &\text{j<coin}\\
 dp[i-1][j]+dp[i][j-coin] &\text{j>=coin}\\
 \end{cases}
 $$
-题解为dp[n] [amount]
+题解为`dp[n][amount]`
 
 空间优化方案
 
@@ -2010,11 +2080,11 @@ for i = 0,...,n-1
 
 因此想办法将这个过程简化，如果将字符在s中的位置存储起来就可以省去大量时间
 
-因此使用`dp[i][j]`表示字符串从下标 i 开始字符（'a'+j）出现的第一个位置，如果没有该字符则`dp[i][j]`=m，即字符串s的长度，表示下标 i **及之后**没有该字符
+因此使用`dp[i][j]`表示字符串从下标 i 开始字符`（'a'+j）`出现的第一个位置，如果没有该字符则`dp[i][j]`=m，即字符串s的长度，表示下标 i **及之后**没有该字符
 
 `dp[m+1][26]`，初始化dp[m]的值都为m，从后往前遍历数组dp
 
-如果字符串s的第i个字符恰好为'a'+j，则`dp[i][j]=i`，否则`dp[i][j]=dp[i+1][j]`，即在下标 i **之后**字符'a'+j第一次出现的位置，所以需要从后往前遍历数组
+如果字符串s的第i个字符恰好为`'a'+j`，则`dp[i][j]=i`，否则`dp[i][j]=dp[i+1][j]`，即在下标 i **之后**字符`'a'+j`第一次出现的位置，所以需要从后往前遍历数组
 
 状态转移方程为：
 $$
@@ -2164,6 +2234,85 @@ dp[i]和count[i]的初始值都为1
 
 
 
+### [714. 买卖股票的最佳时机含手续费](https://leetcode-cn.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/)
+
+定义数组buy[n+1]和sell[n+1]
+
+buy[i]表示第i天买入股票的最大利润，即持有股票
+
+sell[i]表示第i天卖出股票的最大利润，即不持有股票
+
+这两者之间存在转化关系
+
+定义price为第i天的股票价格，即prices[i-1]
+
+如果第i天不持有股票，利润为sell[i]，则可能的情况有两种：
+
+​		1.前一天手上已经没有股票了，利润即sell[i-1]
+
+​		2.前一天持有股票的利润为buy[i-1]，然后今天将它卖出，需要扣除手续费，利润即buy[i-1]+price-fee
+
+如果第i天持有股票，利润为buy[i]，则可能的情况有两种：
+
+​		1.前一天也是持有股票的，利润即为buy[i-1]
+
+​		2.前一天不持有股票的利润为sell[i-1]，然后今天买入股票，利润为sell[i-1]+price
+
+最后的最大利润必然是第n天不持有股票sell[n]
+
+初始状态下，没有股票的利润为0。有股票的利润为-prices[0]，即sell[0]=0，buy[0]=-prices[0]
+
+状态转移方程为：
+$$
+sell[i] = \begin{cases}
+0 &\text{i=0}\\
+max(sell[i-1],buy[i-1]+prices[i-1]-fee) &\text{0<i<=n}\\
+\end{cases}
+$$
+
+$$
+buy[i] = \begin{cases}
+-prices[0] &\text{i=0}\\
+max(buy[i-1],sell[i-1]-prices[i-1]) &\text{0<i<=n}\\
+\end{cases}
+$$
+
+具体代码：
+
+```java
+ 	public int maxProfit(int[] prices, int fee) {
+        int n=prices.length;
+        int[] buy=new int[n+1];
+        int[] sell=new int[n+1];
+        sell[0]=0;
+        buy[0]=-prices[0];
+        for(int i=1;i<=n;i++){
+            sell[i]=Math.max(sell[i-1],buy[i-1]+prices[i-1]-fee);
+            buy[i]=Math.max(buy[i-1],sell[i-1]-prices[i-1]);
+        }
+        return sell[n];
+    }
+```
+
+考虑空间优化，sell[i]和buy[i]只与sell[i-1]、buy[i-1]有关，因此可以使用变量代替数组
+
+由于可以无限次交易，所以可以在当天买入卖出，buy和sell的先后顺序不影响结果
+
+```java
+	public int maxProfit(int[] prices, int fee) {
+        int n=prices.length;
+        int sell=0;
+        int buy=-prices[0];
+        for(int i=0;i<n;i++){
+            sell=Math.max(sell,buy+prices[i]-fee);
+            buy=Math.max(buy,sell-prices[i]);
+        }
+        return sell;
+    }
+```
+
+
+
 ### 787.K站中转内最便宜的航班
 
 [787. K 站中转内最便宜的航班 - 力扣（LeetCode） (leetcode-cn.com)](https://leetcode-cn.com/problems/cheapest-flights-within-k-stops/)
@@ -2199,7 +2348,7 @@ $$
 
 `dp[i][j][k]` 表示前 i 组员工在工作成员总数为 j 的情况下至少产生利润为 k 的方案数量，
 
-初始化值为dp[0] [0] [0]=1，表示至少产生利润为0的方案有一种，就是不派遣任何工人
+初始化值为`dp[0][0][0]=1`，表示至少产生利润为0的方案有一种，就是不派遣任何工人
 
 第 i 个组的人数为group，对应的利润为profit
 
@@ -3200,6 +3349,525 @@ int[] move=new int[]{-1,0,1,0,-1};
     }
 ```
 
+
+
+## 分治
+
+### [95. 不同的二叉搜索树 II](https://leetcode-cn.com/problems/unique-binary-search-trees-ii/)
+
+对于区间[start,end] ，不同的二叉搜索树的区别就是根节点，以根节点 i 划分左右子树的节点
+
+左子树的节点就是[start,i-1]
+
+右子树的节点就是[i+1,end]
+
+当start大于end时，节点为空
+
+i遍历start到end，将i作为根节点，求得左右子树的节点列表，遍历左右子树列表，连接构造二叉搜索树
+
+为了减少时间消耗，使用memo暂存结果
+
+```java
+	List<TreeNode>[][] memo;//记忆化搜索
+    public List<TreeNode> generateTrees(int n) {
+        memo=new List[n+1][n+1];
+        return separate(1,n);
+    }
+    private List<TreeNode> separate(int start,int end){
+        List<TreeNode> re=new ArrayList<>();
+        if(start>end){
+            re.add(null);
+            return re;
+        }
+        if(memo[start][end]!=null){
+            return memo[start][end];
+        }
+        for(int i=start;i<=end;i++){
+            List<TreeNode> left=separate(start,i-1);
+            List<TreeNode> right=separate(i+1,end);
+            for(TreeNode leftNode:left){
+                for(TreeNode rightNode:right){
+                    TreeNode node=new TreeNode(i);
+                    node.left=leftNode;
+                    node.right=rightNode;
+                    re.add(node);
+                }
+            }
+        }
+        memo[start][end]=re;
+        return re;
+    }
+```
+
+
+
+### [241. 为运算表达式设计优先级](https://leetcode-cn.com/problems/different-ways-to-add-parentheses/)
+
+以运算符为界限分割字符串的左右两边，直到字符串中没有运算符只有数字为止，然后将左右两边运算得到结果
+
+```java
+	public List<Integer> diffWaysToCompute(String expression) {
+        //以运算符分割字符串左右两边，递归得到不同括号的运算结果
+        //最后归总
+        List<Integer> re=new ArrayList<>();
+        for(int i=0;i<expression.length();i++){
+            char c=expression.charAt(i);
+            if(c=='+'||c=='-'||c=='*'){
+                List<Integer> left=diffWaysToCompute(expression.substring(0,i));
+                List<Integer> right=diffWaysToCompute(expression.substring(i+1,expression.length()));
+                for(Integer leftNum:left){
+                    for(Integer rightNum:right){
+                        if(c=='+'){
+                            re.add(leftNum+rightNum);
+                        }else if(c=='-'){
+                            re.add(leftNum-rightNum);
+                        }else if(c=='*'){
+                            re.add(leftNum*rightNum);
+                        }
+                    }
+                }
+            }
+        }
+        if(re.size()==0)//没有运算符，只有数字
+        {
+            re.add(Integer.valueOf(expression));
+        }
+        return re;
+    }
+```
+
+
+
+也可以将中间字符串的运算结果保存起来，减少时间消耗
+
+## 数学
+
+### [172. 阶乘后的零](https://leetcode-cn.com/problems/factorial-trailing-zeroes/)
+
+暴力法需要用到BigInteger
+
+考虑结果中尾随零是怎么产生的，尾随零都是阶乘中出现了10=2*5的乘数因子
+
+因此找阶乘每一个元素的质因子中2和5的数量，就可以得到尾随零的数量
+
+由于2的数量远大于5的数量，因此只需要遍历1到n统计质因子为5的数量
+
+```java
+	private int find(int n,int mod){
+        int re=0;
+        while(n>=mod){
+            if(n%mod==0){
+                re++;
+            }else{
+                break;
+            }
+            n=n/mod;
+        }
+        return re;
+    }
+```
+
+
+
+改进之后
+
+```java
+return n==0?0:n/5+trailingZeroes(n/5);
+```
+
+
+
+### [204. 计数质数](https://leetcode-cn.com/problems/count-primes/)
+
+如果从1开始一个个遍历到n ，判断每个数是不是质数，会超时
+
+因此使用埃拉托斯特尼筛法（Sieve of Eratosthenes，简称埃氏筛法），它是非常常用的，判断一个整数是否是质数的方法。并且它可以在判断一个整数 *n* 时，同时判断所小于 *n* 的整数，因此非常适合这道题。其原理也十分易懂：从 1 到 *n* 遍历，假设当前遍历到 *m*，则把所有小于 *n* 的、且是 *m* 的倍数的整数标为和数；遍历完成后，没有被标为和数的数字即为质数。
+
+```java
+	public int countPrimes(int n) {
+        int re=0;
+        boolean[] judge=new boolean[n];
+        for(int i=2;i<n;i++)
+        {
+            if(!judge[i])
+            {
+                re++;
+            }
+            if((long)i*i<n)
+            {
+                for(int j=i*i;j<n;j+=i)
+                {
+                    judge[j]=true;
+                }
+            }
+        }
+        return re;
+    }
+```
+
+
+
+### [238. 除自身以外数组的乘积](https://leetcode-cn.com/problems/product-of-array-except-self/)
+
+不使用除法
+
+对于nums[i]，数组中除了它之外的乘积就是nums[0]~nums[i]的乘积，乘以nums[i+1]~nums[n-1]的乘积
+
+即该元素的左右两边元素的乘积，因此利用前缀和的思想，定义前缀乘积和后缀乘积
+
+定义数组left[i]表示，nums[i]左边所有元素的乘积
+
+定义数组right[i]表示，nums[i]右边所有元素的乘积，空间复杂度可优化
+
+两趟遍历就可以得到答案
+
+```java
+	public int[] productExceptSelf(int[] nums) {
+        int n=nums.length;
+        int[] left=new int[n];
+        left[0]=1;
+        for(int i=1;i<n;i++)
+        {
+            left[i]=nums[i-1]*left[i-1];
+        }
+        int right=1;
+        for(int i=n-1;i>=0;i--)
+        {
+            left[i]=left[i]*right;
+            right*=nums[i];
+        }
+        return left;  
+    }
+```
+
+
+
+### [462. 最少移动次数使数组元素相等 II](https://leetcode-cn.com/problems/minimum-moves-to-equal-array-elements-ii/)
+
+数组中每个数应该变成多少呢，经过数学证明是中位数
+
+证明如下：
+
+很多人不明白为什么中位数是最优解，其实证明非常简单，下面来看看吧：
+
+为了方便，我们先假设一共有2n+1个数，它们从小到大排序之后如下：
+
+```stylus
+ . . . a m b . . .
+```
+
+其中m是中位数。此时，m左边有n个数，m右边也有n个数。我们假设把m左边所有数变成m需要的代价是x，把m右边所有数变成m的代价是y，此时的总代价就是`t = x+y`
+
+好，如果你觉得中位数不是最优解，我们来看看把所有数都变成a的总代价是多少。 由于之前m右边n个数变成m的代价是y，现在让右边的数全变成a，此时右边的数的代价是`y+(m-a)*n`；m左边的n个数全变成a，它们的代价会减少到`x-(m-a)*n`。所以两边相加，结果还是 `x-(m-a)*n + y+(m-a)*n == x+y`。 但是，别忘了，m也要变成a，所以总代价是x+y+m-a，大于x+y。同理，如果让所有数都变成比m大的b，总代价则变为x+y+b-m（你可以自己算一下），依然比x+y大。并且越往左移或者往右移，这个值都会越来越大。 因此，在有2n+1个数的时候，选择中位数就是最优解。
+
+这个证明同样可以很简单地推广到2n个数。
+
+```stylus
+. . . a b . . .
+```
+
+假设a左边有n-1个数，b右边也有n-1个数。如果我们选择把所有数都变成a，设a左边所有数变成a的代价是x，b右边所有数变成a的代价是y，因此总代价是`x+y+b-a`（b也要变成a）。 现在尝试下如果把所有数变成b，那么a左边的总代价变成了`x+(b-a)*(n-1)`，b右边总代价变成了`y-(b-a)*(n-1)`，同时还要把a变成b，因此总代价同样为`x+(b-a)*(n-1)+y-(b-a)*(n-1) == x+y+b-a`。也就是说当总个数为2n时，两个中位数选哪个最终结果都一样，但是继续左移和继续右移，都会使总代价增加（可以自己试试）。
+
+至此，证明了`中位数是最优策略`
+
+### 随机与取样
+
+### [382. 链表随机节点](https://leetcode-cn.com/problems/linked-list-random-node/)
+
+**蓄水池抽样算法**
+
+当内存无法加载全部数据时，如何从包含未知大小的数据流中随机选取k个数据，并且要保证每个数据被抽取到的概率相等。
+
+本题的情况就是k=1
+
+假设数据流有N个数，要保证所有数被选中的概率相等，也就是说每个数被选中的概率都是1/N
+
+方案为：遍历数据流时，每次只保留一个数，当遇到第i个数时，以1/i的概率保留它，以(i-1)/i的概率保留原来的数，直到把第N个数遍历完，最后保留的数就是结果
+
+![1.png](https://pic.leetcode-cn.com/831bdf1ea840c47b79007f206fb9fe6f1a1effb6c5ceed15509fe0abb23ed2f9.jpg)
+
+对于本题的情况来说，顺序遍历链表，按照上述k=1的方案保留下来的就是答案
+
+```java
+	public int getRandom() {
+        int i=1;
+        ListNode node=head;
+        int re=node.val;
+        while(node!=null){
+            int judge=rand.nextInt(i)+1;//judge从1~i中随机生成
+            if(judge==1){//只有当judge等于1时，才将re替换为当前节点值，即1/i的概率使用第i个节点值
+                re=node.val;
+            }
+            i++;
+            node=node.next;
+        }
+        return re;
+    }
+```
+
+
+
+### [528. 按权重随机选择](https://leetcode-cn.com/problems/random-pick-with-weight/)
+
+生成权重的前缀和数组sum
+
+随机生成1到sum[n-1]的整数x，在sum数组中查找第一个大于或等于x的下标，就是答案
+
+sum是前缀和数组，单调递增，所以可以使用二分查找
+
+```java
+	public int pickIndex() {
+        int x=rand.nextInt(sum[n-1])+1;//生成的随机数是1~sum[n-1]，闭区间
+        //结合二分查找，找sum中到最小的大于或等于x的下标
+        int left=0;
+        int right=n-1;
+        while(left<=right){
+            int mid=(left+right)/2;
+            if(sum[mid]==x){
+                return mid;
+            }else if(sum[mid]>x){
+                right=mid-1;
+            }else if(sum[mid]<x){
+                left=mid+1;
+            }
+        }
+        return left;
+    }
+```
+
+
+
+## 图
+
+### 二分图
+
+### [785. 判断二分图](https://leetcode-cn.com/problems/is-graph-bipartite/)
+
+可以采用染色的方法，同样颜色的节点就在二分图的同一子集
+
+规定每条边的两个节点在不同子集可以确定，每个节点和其相邻节点都应被标记为不同的颜色
+
+根据这样的规则可以使用深度优先搜索或广度优先搜索来遍历节点并染色
+
+因此如果发现节点与相邻节点颜色相同，就可以判定不是二分图
+
+BFS，使用队列保存已经访问过的节点
+
+```java
+	//广度优先搜索
+    public boolean isBipartite(int[][] graph) {
+        int n=graph.length;
+        int[] color=new int[n];//0表示节点未访问，1和2用来区别节点在分割后的哪一个子集
+        Queue<Integer> q=new LinkedList<>();
+        
+        for(int i=0;i<n;i++){
+            if(color[i]==0){//将未访问过的节点标记为1
+                color[i]=1;
+                q.offer(i);
+            }
+            while(!q.isEmpty()){
+                int cur=q.poll();
+                //当前节点相邻的节点标记为与cur不同的颜色
+                for(int j:graph[cur]){
+                    if(color[j]==0){
+                        color[j]=color[cur]==1?2:1;
+                        q.offer(j);
+                    }else if(color[j]==color[cur]){//如果与cur相邻的节点和cur的颜色相同，则不能二分图
+                        return false;
+                    }
+                    
+                }
+            }
+        }
+        return true;
+    }
+```
+
+
+
+深度优先搜索也可实现，染色的规则不变
+
+```java
+	int n;
+    int[] color;
+    boolean flag;
+    public boolean isBipartite(int[][] graph) {
+        n=graph.length;
+        flag=true;
+        color=new int[n];
+        for(int i=0;i<n&&flag;i++){
+            if(color[i]==0){
+                dfs(graph,i,1);
+            }
+        }
+        return flag;
+    }
+    private void dfs(int[][] graph,int cur,int mark){
+        color[cur]=mark;
+        int nextmark=mark==1?2:1;//与当前节点相邻节点应该被染成不同的颜色
+        for(int j:graph[cur]){
+            if(color[j]==0){
+                dfs(graph,j,nextmark);
+            }else if(color[j]==color[cur]){//当前节点cur与相邻节点j颜色相同，无法二分图
+                flag=false;
+                return;
+            }
+        }
+    }
+```
+
+
+
+### [剑指 Offer II 106. 二分图](https://leetcode-cn.com/problems/vEAB3K/)
+
+与785题相同
+
+### 拓扑排序
+
+### [207. 课程表](https://leetcode-cn.com/problems/course-schedule/)
+
+能否完成所有课程的学习，其实就是判断有向图中是否有环
+
+将每一门课看成一个节点；
+
+如果想要学习课程 A之前必须完成课程 B，那么我们从 B到 A 连接一条有向边。这样以来，在拓扑排序中，B 一定出现在 A 的前面。
+
+拓扑排序+深度优先搜索
+
+对于一个节点 u，如果它的所有相邻节点都已经搜索完成，那么在搜索回溯到 u 的时候，u 本身也会变成一个已经搜索完成的节点。这里的「相邻节点」指的是从 u 出发通过一条有向边可以到达的所有节点。
+
+假设我们当前搜索到了节点 u，如果它的所有相邻节点都已经搜索完成，那么这些节点都已经在栈中了，此时我们就可以把 u 入栈。可以发现，如果我们从栈顶往栈底的顺序看，由于 u 处于栈顶的位置，那么 u 出现在所有 u 的相邻节点的前面。因此对于 u 这个节点而言，它是满足拓扑排序的要求的。
+
+这样以来，我们对图进行一遍深度优先搜索。当每个节点进行回溯的时候，我们把该节点放入栈中。最终从栈顶到栈底的序列就是一种拓扑排序。
+
+对于图中的任意一个节点，它在搜索的过程中有三种状态，即：
+
+「未搜索」：我们还没有搜索到这个节点；
+
+「搜索中」：我们搜索过这个节点，但还没有回溯到该节点，即该节点还没有入栈，还有相邻的节点没有搜索完成）；
+
+「已完成」：我们搜索过并且回溯过这个节点，即该节点已经入栈，并且所有该节点的相邻节点都出现在栈的更底部的位置，满足拓扑排序的要求。
+
+通过上述的三种状态，我们就可以给出使用深度优先搜索得到拓扑排序的算法流程，在每一轮的搜索搜索开始时，我们任取一个「未搜索」的节点开始进行深度优先搜索。
+
+我们将当前搜索的节点 u 标记为「搜索中」，遍历该节点的每一个相邻节点 v：
+
+如果 v 为「未搜索」，那么我们开始搜索 v，待搜索完成回溯到 u；
+
+如果 v 为「搜索中」，那么我们就找到了图中的一个环，因此是不存在拓扑排序的；
+
+如果 v 为「已完成」，那么说明 v 已经在栈中了，而 u 还不在栈中，因此 u 无论何时入栈都不会影响到 (u, v)(u,v) 之前的拓扑关系，以及不用进行任何操作。
+
+当 u 的所有相邻节点都为「已完成」时，我们将 u 放入栈中，并将其标记为「已完成」。
+
+在整个深度优先搜索的过程结束后，如果我们没有找到图中的环，那么栈中存储这所有的 n 个节点，从栈顶到栈底的顺序即为一种拓扑排序。
+
+本题不需要得到排序结果，因此省去对应的栈
+
+```java
+	List<List<Integer>> edges=new ArrayList<>();
+    boolean re;
+    int[] visited;//0表示未搜索，1表示搜索中，2表示已经完成搜索
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        visited=new int[numCourses];
+        re=true;
+        for(int i=0;i<numCourses;i++){
+            edges.add(new ArrayList<Integer>());
+        }
+        for(int[] pre:prerequisites){
+            edges.get(pre[1]).add(pre[0]);
+        }
+        for(int i=0;i<numCourses&&re;i++){
+            if(visited[i]==0){
+                dfs(i);
+            }
+        }
+        return re;
+    }
+    private void dfs(int cur){
+        visited[cur]=1;//进入搜索中的状态
+        for(int v:edges.get(cur)){
+            if(visited[v]==1){//如果当前节点指向的节点在搜索中，说明是有环图，必定不能拓扑排序
+                re=false;
+                return;
+            }
+            if(visited[v]==0){
+                dfs(v);
+                if(!re){
+                    return;
+                }
+            }
+        }
+        visited[cur]=2;//完成搜索
+    }
+```
+
+
+
+### [210. 课程表 II](https://leetcode-cn.com/problems/course-schedule-ii/)
+
+拓扑排序+广度优先搜索
+
+首先构造图的邻接矩阵，为了便于理解，定义课程i指向课程j表示，必须先修完课程i才能修课程j
+
+因此题目给出的`prerequisites[i] = [ai, bi]`，在邻接矩阵里表示的是bi指向ai
+
+为了压缩空间，这里使用`List<List<Integer>> edges`表示图中有向边，而不需要使用邻接矩阵
+
+将入度为0的节点入队，节点出队的时候，将其指向的其他节点的入度减一，节点出队的顺序就是课程表
+
+```java
+	public int[] findOrder(int numCourses, int[][] prerequisites) {
+        int[] countIn=new int[numCourses];//记录节点入度
+        List<List<Integer>> edges=new ArrayList<>();//图的有向边，edges.get(i)表示i指向的节点
+        for(int i=0;i<numCourses;i++){
+            edges.add(new ArrayList<Integer>());
+        }
+        for(int[] pre:prerequisites){
+            countIn[pre[0]]++;
+            edges.get(pre[1]).add(pre[0]);//pre[1]指向pre[0]
+        }
+        Queue<Integer> q=new LinkedList<>();
+        int[] re=new int[numCourses];
+        int index=0;
+        //先将入度为0的节点入队
+        for(int i=0;i<numCourses;i++){
+            if(countIn[i]==0){
+                q.offer(i);
+            }
+        }
+        while(!q.isEmpty()){
+            int size=q.size();
+            while(size>0){
+                int cur=q.poll();
+                re[index++]=cur;//将当前节点加入结果数组
+                for(int i:edges.get(cur)){
+                    countIn[i]--;//将当前节点指向的节点入度减一
+                    if(countIn[i]==0){//如果被指向的节点i入度为0，将节点i加入队列
+                        q.offer(i);
+                    }
+                }
+                size--;
+            }
+        }
+        //还需要检查是否所有节点入度都为0，如果有不为0的，说明无法完成所有课程，返回空数组
+        if(index!=numCourses){
+            return new int[]{};
+        }
+        return re;
+    } 
+```
+
+
+
+拓扑排序+深度优先搜索
+
+也可以解决，需要增加一个栈来存储节点顺序，也可以用下标从右边开始的数组模拟栈
+
+### [剑指 Offer II 113. 课程顺序](https://leetcode-cn.com/problems/QA2IGt/)
+
+和210题相同
+
 ## 哈希表
 
 ### 128.最长连续序列
@@ -3209,6 +3877,49 @@ int[] move=new int[]{-1,0,1,0,-1};
 使用集合set去重 
 
 对于一个连续序列，按照从小到大的顺序排列，开头的元素为x，则x-1一定不在集合set中，因此遍历集合寻找开头元素x，然后在集合set中继续寻找序列后面的元素，即x+1，x+2，x+3，......，从而得到序列长度，结果取序列长度的最长值
+
+### [855. 考场就座](https://leetcode-cn.com/problems/exam-room/)
+
+使用TreeSet，排序集合保存已经坐人的座位，利用TreeSet自带的方法完成
+
+```java
+	TreeSet<Integer> set=new TreeSet<>();
+    int n;
+    public ExamRoom(int n) {
+        this.n=n;
+    }
+    
+    public int seat() {
+        //注意边界情况0和n-1
+        //离他最近的人，相当于在当前已经坐人的相邻两个座位之间寻找最大的间距，否则就往后安排
+        int re=0;//结果座位初始化为0
+        if(set.size()==0){//集合为空，说明考场里没有人，直接坐在0号座位上
+            set.add(re);
+            return re;
+        }
+        int maxdistance=set.first();//初始情况下，最大距离为set中第一个元素，因为如果座位0没人坐，那么第一个元素就是它与0的距离。如果0有人坐，
+        int pre=set.first();//前一个座位
+        for(Integer i:set){//遍历集合
+            int distance=(i-pre)/2;//当前坐人座位与前一个坐人座位的距离
+            if(distance>maxdistance){//更新最大距离的同时更新结果
+                maxdistance=distance;
+                re=pre+distance;
+            }
+            pre=i;
+        }
+        if(n-1-set.last()>maxdistance){//边界情况n-1，如果n-1与集合中最后一个座位的距离大于之前遍历集合得到的最大距离，则将n-1置为答案
+            re=n-1;
+        }
+        set.add(re);
+        return re;
+    }
+    
+    public void leave(int p) {
+        set.remove(p);
+    }
+```
+
+
 
 ### 930.和相同的二元子数组
 
